@@ -1,0 +1,18 @@
+[Unit]
+Description=Rumo ao Zero — backend Django (gunicorn)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/bessa/Dropbox/projetos/mudar_habitos/zero_alcool_tabaco/apps/backend
+# Porta incomum, só localhost. settings lê o .env (SECRET_KEY, DEBUG, DB_PATH).
+Environment=PORT=8492
+ExecStartPre=/home/bessa/Dropbox/projetos/mudar_habitos/zero_alcool_tabaco/apps/backend/.venv/bin/python manage.py migrate --noinput
+ExecStartPre=/home/bessa/Dropbox/projetos/mudar_habitos/zero_alcool_tabaco/apps/backend/.venv/bin/python manage.py collectstatic --noinput
+ExecStart=/home/bessa/Dropbox/projetos/mudar_habitos/zero_alcool_tabaco/apps/backend/.venv/bin/gunicorn config.wsgi:application --bind 127.0.0.1:${PORT} --workers 2 --timeout 60
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target
