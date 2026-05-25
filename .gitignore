@@ -1,0 +1,31 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# === Ambientes / uv ===
+.venv/
+venv/
+
+# === Django ===
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+
+# === Segredos (dados/credenciais ficam no Dropbox, nunca no git) ===
+.env
+.secrets/
+
+# === oh-my-claudecode (estado local da máquina) ===
+.omc/
+
+# === Sistema operacional / editores ===
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
