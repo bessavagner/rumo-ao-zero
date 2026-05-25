@@ -92,3 +92,25 @@ def test_substituicoes_eficacia():
     assert r[0]["usos"] == 2
     assert r[0]["taxa_resolucao"] == 0.5
     assert r[0]["tempo_medio_min"] == 20.0
+
+
+@pytest.mark.django_db
+def test_estados_frequencia():
+    from apps.baseline.models import EstadoInterno
+    from apps.log.models import CravingEvent
+    from apps.log.services import estados_frequencia
+
+    user = _user_com_baseline("est", 30)
+    cansaco = EstadoInterno.objects.create(user=user, nome="cansaço")
+    solidao = EstadoInterno.objects.create(user=user, nome="solidão")
+    c1 = CravingEvent.objects.create(
+        user=user, timestamp=timezone.now(), substancia="tabaco", intensidade_pico=7, gatilho_texto="x"
+    )
+    c1.estados.add(cansaco, solidao)
+    c2 = CravingEvent.objects.create(
+        user=user, timestamp=timezone.now(), substancia="tabaco", intensidade_pico=6, gatilho_texto="y"
+    )
+    c2.estados.add(cansaco)
+
+    r = estados_frequencia(user)
+    assert r[0] == {"estado": "cansaço", "ocorrencias": 2}

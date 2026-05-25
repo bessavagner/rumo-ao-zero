@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import BaselineProfile, IfThenPlan, Substitution, Trigger, Value
+from .models import BaselineProfile, EstadoInterno, IfThenPlan, Substitution, Trigger, Value
+
+
+@admin.register(EstadoInterno)
+class EstadoInternoAdmin(admin.ModelAdmin):
+    list_display = ("nome", "user", "ordem", "ativo")
+    list_filter = ("user", "ativo")
+    search_fields = ("nome",)
 
 
 @admin.register(BaselineProfile)
@@ -16,8 +23,8 @@ class ValueAdmin(admin.ModelAdmin):
 
 @admin.register(Trigger)
 class TriggerAdmin(admin.ModelAdmin):
-    list_display = ("nome", "user", "halt_mais_comum", "frequencia_semana", "ativo")
-    list_filter = ("user", "ativo", "halt_mais_comum")
+    list_display = ("nome", "user", "estado_mais_comum", "frequencia_semana", "ativo")
+    list_filter = ("user", "ativo", "estado_mais_comum")
     search_fields = ("nome", "contexto")
 
 

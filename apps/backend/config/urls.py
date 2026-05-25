@@ -14,6 +14,7 @@ from apps.backlog.views import (
 )
 from apps.baseline.views import (
     BaselineProfileViewSet,
+    EstadoInternoViewSet,
     IfThenPlanViewSet,
     SubstitutionViewSet,
     TriggerViewSet,
@@ -30,6 +31,7 @@ router.register("log/slips", SlipViewSet)
 router.register("baseline/profile", BaselineProfileViewSet)
 router.register("baseline/values", ValueViewSet)
 router.register("baseline/triggers", TriggerViewSet)
+router.register("baseline/estados", EstadoInternoViewSet)
 router.register("baseline/substitutions", SubstitutionViewSet)
 router.register("baseline/ifthen", IfThenPlanViewSet)
 # backlog (preenchido pelo assistente)

@@ -17,8 +17,8 @@ class DailyEntry(models.Model):
     sono_q = models.PositiveSmallIntegerField(help_text="1–5")
     craving_pico = models.PositiveSmallIntegerField(help_text="0–10", default=0)
 
-    # HALT — JSON com os 4 flags
-    halt = models.JSONField(default=dict, blank=True, help_text='ex: {"H": false, "A": true, ...}')
+    # Estado interno (ex-HALT) — catálogo extensível; vazio = nenhum estado marcado
+    estados = models.ManyToManyField("baseline.EstadoInterno", blank=True, related_name="daily_entries")
 
     # Substituições usadas hoje
     substituicoes = models.ManyToManyField(Substitution, blank=True)
@@ -32,7 +32,7 @@ class DailyEntry(models.Model):
     coisa_dificil = models.CharField(max_length=255, blank=True)
 
     # Flags do dia
-    halt_check_feito = models.BooleanField(default=False)
+    estado_checado = models.BooleanField(default=False)
     cravings_logados = models.BooleanField(default=False)
 
     # Editorial
@@ -67,7 +67,7 @@ class CravingEvent(models.Model):
 
     gatilho_texto = models.CharField(max_length=255)
     trigger = models.ForeignKey(Trigger, null=True, blank=True, on_delete=models.SET_NULL)
-    halt = models.JSONField(default=dict, blank=True)
+    estados = models.ManyToManyField("baseline.EstadoInterno", blank=True, related_name="cravings")
 
     # Thought record 7 colunas (parcial)
     pensamento_automatico = models.TextField(blank=True)

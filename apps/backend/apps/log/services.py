@@ -12,7 +12,7 @@ from datetime import date, timedelta
 
 from apps.baseline.models import Substitution
 
-from .models import CravingEvent, Slip
+from .models import CravingEvent, DailyEntry, Slip
 
 
 def dias_ate_dia1(user) -> int:
@@ -86,6 +86,19 @@ def substituicoes_eficacia(user) -> list[dict]:
         })
     resultado.sort(key=lambda d: (d["taxa_resolucao"], d["usos"]), reverse=True)
     return resultado
+
+
+def estados_frequencia(user, dias: int = 30) -> list[dict]:
+    """Frequência dos estados internos (ex-HALT) nos DailyEntry + CravingEvent dos últimos N dias."""
+    desde = date.today() - timedelta(days=dias)
+    contagem = Counter()
+    for ev in CravingEvent.objects.filter(user=user, timestamp__date__gte=desde).prefetch_related("estados"):
+        for e in ev.estados.all():
+            contagem[e.nome] += 1
+    for de in DailyEntry.objects.filter(user=user, data__gte=desde).prefetch_related("estados"):
+        for e in de.estados.all():
+            contagem[e.nome] += 1
+    return [{"estado": nome, "ocorrencias": n} for nome, n in contagem.most_common()]
 
 
 def triggers_frequencia(user, dias: int = 30) -> list[dict]:

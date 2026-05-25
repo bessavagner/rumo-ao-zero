@@ -1,13 +1,22 @@
 from apps.common import OwnedModelViewSet
 
-from .models import BaselineProfile, IfThenPlan, Substitution, Trigger, Value
+from .models import BaselineProfile, EstadoInterno, IfThenPlan, Substitution, Trigger, Value
 from .serializers import (
     BaselineProfileSerializer,
+    EstadoInternoSerializer,
     IfThenPlanSerializer,
     SubstitutionSerializer,
     TriggerSerializer,
     ValueSerializer,
 )
+
+
+class EstadoInternoViewSet(OwnedModelViewSet):
+    queryset = EstadoInterno.objects.all()
+    serializer_class = EstadoInternoSerializer
+    filterset_fields = ["ativo"]
+    search_fields = ["nome"]
+    ordering_fields = ["ordem", "nome"]
 
 
 class BaselineProfileViewSet(OwnedModelViewSet):
@@ -24,7 +33,7 @@ class ValueViewSet(OwnedModelViewSet):
 class TriggerViewSet(OwnedModelViewSet):
     queryset = Trigger.objects.all()
     serializer_class = TriggerSerializer
-    filterset_fields = ["ativo", "halt_mais_comum"]
+    filterset_fields = ["ativo", "estado_mais_comum"]
     search_fields = ["nome", "contexto"]
 
 
