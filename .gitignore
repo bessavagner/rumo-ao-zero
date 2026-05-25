@@ -20,6 +20,9 @@ media/
 .env
 .secrets/
 
+# Documentos médicos pessoais (nome/CPF/RG) — ficam no Dropbox, fora do git
+docs/meds/
+
 # === oh-my-claudecode (estado local da máquina) ===
 .omc/
 
