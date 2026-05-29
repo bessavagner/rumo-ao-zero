@@ -17,6 +17,9 @@ class BaselineProfile(models.Model):
     motivacoes_need = models.TextField(blank=True)
     commitment_statement = models.TextField(blank=True)
     baseline_peso = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    baseline_circ_abdominal = models.DecimalField(
+        max_digits=5, decimal_places=2, null=True, blank=True, help_text="cm; jejum, pós-banheiro"
+    )
     baseline_pa = models.CharField(max_length=16, blank=True, help_text="ex: 120/80")
     baseline_hr_repouso = models.IntegerField(null=True, blank=True)
     # Pennebaker (cifragem at-rest adiada — ver spec §1)
