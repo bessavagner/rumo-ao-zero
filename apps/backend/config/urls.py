@@ -6,6 +6,8 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter
 
+from config.spa_views import SpaView
+
 from apps.backlog.views import (
     BacklogItemViewSet,
     CompraViewSet,
@@ -51,4 +53,5 @@ urlpatterns = [
     path("api/auth/token/", obtain_auth_token, name="api-token"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
+    path("", SpaView.as_view(), name="spa"),
 ]

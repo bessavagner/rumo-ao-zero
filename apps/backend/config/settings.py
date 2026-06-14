@@ -98,6 +98,9 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# Assets do SPA Svelte: o build (base=/static/spa/) sai em frontend/dist; o collectstatic
+# os recolhe para STATIC_ROOT/spa e o WhiteNoise serve em /static/spa/.
+STATICFILES_DIRS = [("spa", BASE_DIR / "frontend" / "dist")]
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
