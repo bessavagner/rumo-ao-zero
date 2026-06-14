@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
 from apps.baseline.models import BaselineProfile, Substitution
-from apps.log.models import CravingEvent, Slip
+from apps.log.models import CravingEvent, DailyEntry, Pulso, Slip
 
 User = get_user_model()
 
@@ -57,3 +57,35 @@ def test_dashboard_escopa_por_user():
 
     resp = client.get("/api/dashboard/")
     assert resp.json()["streaks"]["alcool"]["consecutivo"] == 5
+
+
+@pytest.mark.django_db
+def test_series_humor_junta_pulsos_e_dailies_ordenado():
+    user = _user_com_baseline(date.today() - timedelta(days=3))
+    Pulso.objects.create(
+        user=user, timestamp="2026-06-22T10:00:00Z", humor=4, energia=4, craving=2
+    )
+    DailyEntry.objects.create(
+        user=user, data="2026-06-21", humor=3, energia=3, sono_h="7.0",
+        sono_q=4, craving_pico=5,
+    )
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    resp = client.get("/api/series/humor/?dias=3650")
+
+    assert resp.status_code == 200, resp.content
+    data = resp.json()
+    pontos = data["pontos"]
+    assert len(pontos) == 2
+    assert pontos[0]["tipo"] == "daily"
+    assert pontos[0]["humor"] == 3
+    assert pontos[0]["craving"] == 5
+    assert pontos[1]["tipo"] == "pulso"
+    assert pontos[1]["craving"] == 2
+
+
+@pytest.mark.django_db
+def test_series_humor_exige_autenticacao():
+    client = APIClient()
+    assert client.get("/api/series/humor/").status_code in (401, 403)

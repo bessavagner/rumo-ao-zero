@@ -20,3 +20,16 @@ class DashboardSerializer(serializers.Serializer):
     estados_frequencia = serializers.ListField(child=serializers.DictField())
     triggers_frequencia = serializers.ListField(child=serializers.DictField())
     substituicoes_eficacia = serializers.ListField(child=serializers.DictField())
+
+
+class HumorPontoSerializer(serializers.Serializer):
+    tipo = serializers.ChoiceField(choices=["pulso", "daily"])
+    timestamp = serializers.CharField()
+    humor = serializers.IntegerField()
+    energia = serializers.IntegerField()
+    craving = serializers.IntegerField()
+
+
+class HumorSeriesSerializer(serializers.Serializer):
+    dias = serializers.IntegerField()
+    pontos = HumorPontoSerializer(many=True)
