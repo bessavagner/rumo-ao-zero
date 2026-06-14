@@ -10,6 +10,8 @@ Princípios:
 from collections import Counter, defaultdict
 from datetime import date, timedelta
 
+from django.utils import timezone
+
 from apps.baseline.models import Substitution
 
 from .models import CravingEvent, DailyEntry, Slip
@@ -17,12 +19,12 @@ from .models import CravingEvent, DailyEntry, Slip
 
 def dias_ate_dia1(user) -> int:
     """Dias que faltam até a Data Zero (0 se a cessação já começou)."""
-    return max(0, (user.baselineprofile.data_zero - date.today()).days)
+    return max(0, (user.baselineprofile.data_zero - timezone.localdate()).days)
 
 
 def streak_consecutivo(user, substancia: str) -> int:
     """Dias consecutivos sem slip da substância, até hoje. 0 se a cessação ainda não começou."""
-    today = date.today()
+    today = timezone.localdate()
     baseline = user.baselineprofile.data_zero
     if today < baseline:
         return 0
@@ -31,14 +33,18 @@ def streak_consecutivo(user, substancia: str) -> int:
         .order_by("-timestamp")
         .first()
     )
-    if last_slip and last_slip.timestamp.date() >= baseline:
-        return (today - last_slip.timestamp.date()).days
+    if last_slip:
+        # timestamp é UTC-aware; converte pro fuso local antes de extrair a data,
+        # senão mistura data local (today) com data UTC e dá off-by-one perto da meia-noite.
+        slip_date = timezone.localtime(last_slip.timestamp).date()
+        if slip_date >= baseline:
+            return (today - slip_date).days
     return (today - baseline).days
 
 
 def streak_cumulativo_ano(user, substancia: str) -> int:
     """Dias livres acumulados no ano desde a Data Zero (slip não zera, só desconta o dia)."""
-    today = date.today()
+    today = timezone.localdate()
     baseline = user.baselineprofile.data_zero
     inicio = max(date(today.year, 1, 1), baseline)
     if today < inicio:
@@ -53,7 +59,7 @@ def streak_cumulativo_ano(user, substancia: str) -> int:
 def dinheiro_economizado(user) -> float:
     """Estimativa por BaselineProfile.custo_mensal_estimado (0 antes da Data Zero)."""
     baseline = user.baselineprofile
-    dias = max(0, (date.today() - baseline.data_zero).days)
+    dias = max(0, (timezone.localdate() - baseline.data_zero).days)
     return float(baseline.custo_mensal_estimado) * dias / 30
 
 
@@ -90,7 +96,7 @@ def substituicoes_eficacia(user) -> list[dict]:
 
 def estados_frequencia(user, dias: int = 30) -> list[dict]:
     """Frequência dos estados internos (ex-HALT) nos DailyEntry + CravingEvent dos últimos N dias."""
-    desde = date.today() - timedelta(days=dias)
+    desde = timezone.localdate() - timedelta(days=dias)
     contagem = Counter()
     for ev in CravingEvent.objects.filter(user=user, timestamp__date__gte=desde).prefetch_related("estados"):
         for e in ev.estados.all():
@@ -103,7 +109,7 @@ def estados_frequencia(user, dias: int = 30) -> list[dict]:
 
 def triggers_frequencia(user, dias: int = 30) -> list[dict]:
     """Frequência dos gatilhos nos últimos N dias, dos CravingEvent (Trigger ligado ou texto livre)."""
-    desde = date.today() - timedelta(days=dias)
+    desde = timezone.localdate() - timedelta(days=dias)
     contagem = Counter()
     eventos = CravingEvent.objects.filter(
         user=user, timestamp__date__gte=desde
