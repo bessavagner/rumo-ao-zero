@@ -20,6 +20,7 @@ from apps.baseline.views import (
     TriggerViewSet,
     ValueViewSet,
 )
+from apps.log.metrics_views import DashboardView
 from apps.log.views import CravingEventViewSet, DailyEntryViewSet, PulsoViewSet, SlipViewSet
 
 router = DefaultRouter()
@@ -44,6 +45,7 @@ router.register("backlog/compras", CompraViewSet)
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(router.urls)),
+    path("api/dashboard/", DashboardView.as_view(), name="dashboard"),
     path("api/auth/", include("rest_framework.urls")),  # login da browsable API
     path("api/auth/token/", obtain_auth_token, name="api-token"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
