@@ -38,3 +38,7 @@ Thumbs.db
 
 # === brainstorming visual companion (mockups locais) ===
 .superpowers/
+
+# === frontend Svelte (build local; dist servido apos collectstatic) ===
+apps/backend/frontend/node_modules/
+apps/backend/frontend/dist/

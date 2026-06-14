@@ -41,3 +41,7 @@ docs/meds/
 
 # Companion visual de brainstorming (mockups locais, nunca pra prod)
 .superpowers/
+
+# Frontend: node_modules e dist nao vao crus pra friday (build la, ver Fase C)
+**/node_modules/
+apps/backend/frontend/dist/
