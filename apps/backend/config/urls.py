@@ -20,13 +20,14 @@ from apps.baseline.views import (
     TriggerViewSet,
     ValueViewSet,
 )
-from apps.log.views import CravingEventViewSet, DailyEntryViewSet, SlipViewSet
+from apps.log.views import CravingEventViewSet, DailyEntryViewSet, PulsoViewSet, SlipViewSet
 
 router = DefaultRouter()
 # log (graváveis — alvo da ingestão de transcrições)
 router.register("log/daily", DailyEntryViewSet)
 router.register("log/cravings", CravingEventViewSet)
 router.register("log/slips", SlipViewSet)
+router.register("log/pulsos", PulsoViewSet)
 # baseline (Dia 0 + bibliotecas)
 router.register("baseline/profile", BaselineProfileViewSet)
 router.register("baseline/values", ValueViewSet)

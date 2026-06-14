@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -15,6 +16,7 @@ class User(AbstractUser):
         max_digits=3,
         decimal_places=1,
         default=3.5,
+        validators=[MinValueValidator(0), MaxValueValidator(10)],
         help_text="Escala 0–10. 0 = cru, 10 = impessoal.",
     )
 

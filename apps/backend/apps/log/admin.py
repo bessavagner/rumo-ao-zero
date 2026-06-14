@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import CravingEvent, DailyEntry, Slip
+from .models import CravingEvent, DailyEntry, Pulso, Slip
 
 
 @admin.register(DailyEntry)
@@ -22,4 +22,11 @@ class CravingEventAdmin(admin.ModelAdmin):
 class SlipAdmin(admin.ModelAdmin):
     list_display = ("timestamp", "user", "substancia", "quantidade")
     list_filter = ("user", "substancia")
+    date_hierarchy = "timestamp"
+
+
+@admin.register(Pulso)
+class PulsoAdmin(admin.ModelAdmin):
+    list_display = ("timestamp", "user", "humor", "energia", "craving", "nota")
+    list_filter = ("user", "humor", "energia")
     date_hierarchy = "timestamp"
