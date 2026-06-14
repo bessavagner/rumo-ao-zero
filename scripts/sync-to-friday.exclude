@@ -38,3 +38,6 @@ docs/meds/
 *Selective Sync Conflict*
 *conflicted copy*
 *.log
+
+# Companion visual de brainstorming (mockups locais, nunca pra prod)
+.superpowers/
