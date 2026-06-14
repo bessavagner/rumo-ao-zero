@@ -1,3 +1,5 @@
+import { logout } from "./auth.svelte";
+
 export class ApiError extends Error {
   status: number;
   body: unknown;
@@ -22,7 +24,15 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const text = await resp.text();
-  const parsed = text ? JSON.parse(text) : null;
+  let parsed: unknown = null;
+  if (text) {
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      parsed = text; // corpo não-JSON (ex.: página de erro HTML quando DEBUG=True)
+    }
+  }
+  if (resp.status === 401) logout(); // token inválido/expirado: volta pro login
   if (resp.status >= 400) throw new ApiError(resp.status, parsed);
   return parsed as T;
 }
