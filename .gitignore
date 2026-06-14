@@ -16,15 +16,18 @@ db.sqlite3-journal
 staticfiles/
 media/
 
-# === Segredos (dados/credenciais ficam no Dropbox, nunca no git) ===
+# === Segredos (transferidos na mão entre máquinas, fora do git e fora do cloud) ===
 .env
 .secrets/
 
-# Documentos médicos pessoais (nome/CPF/RG) — ficam no Dropbox, fora do git
+# Documentos médicos pessoais (nome/CPF/RG) — só no disco local, fora do git e do cloud
 docs/meds/
 
 # === oh-my-claudecode (estado local da máquina) ===
 .omc/
+
+# === codegraph (índice local volátil; SQLite + WAL + socket — nunca versionar/sincronizar) ===
+.codegraph/
 
 # === Sistema operacional / editores ===
 .DS_Store
