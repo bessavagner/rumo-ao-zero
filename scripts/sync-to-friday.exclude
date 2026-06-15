@@ -1,0 +1,47 @@
+# Padrões NÃO sincronizados para a friday (rsync --exclude-from).
+# Fonte da verdade do CÓDIGO/DOCS é o jarvis; a friday roda o backend a partir desta cópia.
+# Os itens abaixo: ou são reconstruídos na friday, ou são PROPRIEDADE da friday (banco),
+# ou são sensíveis (transferidos manualmente uma vez, nunca no watch).
+
+# --- VCS e ambientes (reconstruídos/locais por máquina) ---
+.git/
+.venv/
+**/.venv/
+.codegraph/
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.omc/
+**/.omc/
+.claude/
+
+# --- Banco é PROPRIEDADE da friday (produção) — NUNCA empurrar do jarvis ---
+**/db.sqlite3
+**/db.sqlite3-shm
+**/db.sqlite3-wal
+**/db.sqlite3-journal
+
+# --- Artefatos regeneráveis na friday (collectstatic/uploads) ---
+**/staticfiles/
+**/media/
+
+# --- Sensíveis: ficam só onde precisam; transferidos 1x na mão, fora do watch ---
+.env
+**/.env
+**/.secrets/
+docs/meds/
+
+# --- Lixo de conflito antigo do Dropbox / logs ---
+*Selective Sync Conflict*
+*conflicted copy*
+*.log
+
+# Companion visual de brainstorming (mockups locais, nunca pra prod)
+.superpowers/
+
+# Frontend: node_modules e dist nao vao crus pra friday (build la, ver Fase C)
+**/node_modules/
+apps/backend/frontend/dist/
