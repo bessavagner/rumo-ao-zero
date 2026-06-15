@@ -1,7 +1,12 @@
 from apps.common import OwnedModelViewSet
 
-from .models import CravingEvent, DailyEntry, Slip
-from .serializers import CravingEventSerializer, DailyEntrySerializer, SlipSerializer
+from .models import CravingEvent, DailyEntry, Pulso, Slip
+from .serializers import (
+    CravingEventSerializer,
+    DailyEntrySerializer,
+    PulsoSerializer,
+    SlipSerializer,
+)
 
 
 class DailyEntryViewSet(OwnedModelViewSet):
@@ -23,3 +28,10 @@ class SlipViewSet(OwnedModelViewSet):
     serializer_class = SlipSerializer
     filterset_fields = ["substancia"]
     ordering_fields = ["timestamp"]
+
+
+class PulsoViewSet(OwnedModelViewSet):
+    queryset = Pulso.objects.all()
+    serializer_class = PulsoSerializer
+    filterset_fields = ["humor", "energia", "craving"]
+    ordering_fields = ["timestamp", "humor", "energia", "craving"]

@@ -5,12 +5,15 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/bessa/Dropbox/projetos/mudar_habitos/zero_alcool_tabaco/apps/backend
+WorkingDirectory=/home/bessa/Documents/projetos/rumo_ao_zero/apps/backend
 # Porta incomum, só localhost. settings lê o .env (SECRET_KEY, DEBUG, DB_PATH).
 Environment=PORT=8492
-ExecStartPre=/home/bessa/Dropbox/projetos/mudar_habitos/zero_alcool_tabaco/apps/backend/.venv/bin/python manage.py migrate --noinput
-ExecStartPre=/home/bessa/Dropbox/projetos/mudar_habitos/zero_alcool_tabaco/apps/backend/.venv/bin/python manage.py collectstatic --noinput
-ExecStart=/home/bessa/Dropbox/projetos/mudar_habitos/zero_alcool_tabaco/apps/backend/.venv/bin/gunicorn config.wsgi:application --bind 127.0.0.1:${PORT} --workers 2 --timeout 60
+# PROJETO FORA DO DROPBOX: código sincronizado jarvis->friday via scripts/sync-to-friday.sh
+# (rsync). O banco é propriedade da friday (não sincroniza); venv em ~/.venvs/rumo-backend.
+# Recriar venv: UV_PROJECT_ENVIRONMENT=/home/bessa/.venvs/rumo-backend uv sync --directory <este backend>
+ExecStartPre=/home/bessa/.venvs/rumo-backend/bin/python manage.py migrate --noinput
+ExecStartPre=/home/bessa/.venvs/rumo-backend/bin/python manage.py collectstatic --noinput
+ExecStart=/home/bessa/.venvs/rumo-backend/bin/gunicorn config.wsgi:application --bind 127.0.0.1:${PORT} --workers 2 --timeout 60
 Restart=on-failure
 RestartSec=3
 
