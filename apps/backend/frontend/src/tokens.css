@@ -4,34 +4,34 @@
    legados continuam funcionando (ainda têm o hex literal). */
 :root {
   /* Fundo / superfícies */
-  --bg: #0b0b10;
-  --surface: #1e1e27;
-  --surface-2: #1c1c25;
-  --surface-3: #26262f;
-  --surface-nav: #1a1a22;
-  --input-bg: #14141a;
+  --bg: #0f140f;
+  --surface: #19211a;
+  --surface-2: #161d17;
+  --surface-3: #232c24;
+  --surface-nav: #141b14;
+  --input-bg: #131a14;
 
   /* Bordas */
-  --border: #2a2a32;
-  --border-2: #2a2a38;
+  --border: #233324;
+  --border-2: #2a3a2b;
 
   /* Texto */
-  --text: #e8e8ee;
-  --text-muted: #8a8a94;
+  --text: #e9efe7;
+  --text-muted: #7d917d;
 
   /* Acentos */
-  --accent: #5eead4; /* teal — ações primárias / streaks */
-  --accent-ink: #0b0b10; /* texto sobre acento */
-  --indigo: #6366f1; /* seletor de período */
+  --accent: #86efac;        /* sage green — ações primárias / streaks / curva / barras */
+  --accent-ink: #0c1a10;    /* texto sobre acento */
+  --indigo: #6366f1;        /* mantido: seletor de período no Progresso */
   --indigo-soft: #a5b4fc;
-  --warn: #fbbf24; /* dinheiro / atenção */
-  --danger: #f87171; /* erros / slip */
+  --warn: #e7c9a0;          /* sand — dinheiro */
+  --danger: #f87171;        /* erros / slip */
 
-  /* Raios */
-  --r-sm: 10px;
-  --r-md: 12px;
-  --r-lg: 14px;
-  --r-xl: 18px;
+  /* Raios (um pouco maiores p/ clima mais suave) */
+  --r-sm: 12px;
+  --r-md: 14px;
+  --r-lg: 16px;
+  --r-xl: 20px;
 
   color-scheme: dark;
 }
