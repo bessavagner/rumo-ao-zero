@@ -1,5 +1,6 @@
 <script lang="ts">
   import { api } from "../lib/api";
+  import { formatApiError } from "../lib/errors";
   import type { Dashboard, HumorSeries } from "../lib/types";
   import HumorCurve from "../lib/charts/HumorCurve.svelte";
   import FreqBars from "../lib/charts/FreqBars.svelte";
@@ -22,7 +23,7 @@
         dash = d;
       })
       .catch((e) => {
-        erro = e?.message ?? "Falha ao carregar dados.";
+        erro = formatApiError(e);
       });
   });
 </script>

@@ -37,7 +37,33 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   return parsed as T;
 }
 
+// Valor de parâmetro de querystring (filtros/ordering/page). undefined/null são ignorados.
+export type QueryParams = Record<string, string | number | boolean | undefined | null>;
+
+function withQuery(path: string, params?: QueryParams): string {
+  if (!params) return path;
+  const qs = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v !== undefined && v !== null && v !== "") qs.append(k, String(v));
+  }
+  const s = qs.toString();
+  return s ? `${path}?${s}` : path;
+}
+
+// Resposta paginada padrão do DRF (PageNumberPagination).
+export interface Paginated<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
 export const api = {
   get: <T>(path: string) => request<T>("GET", path),
   post: <T>(path: string, body: unknown) => request<T>("POST", path, body),
+  patch: <T>(path: string, body: unknown) => request<T>("PATCH", path, body),
+  del: <T = void>(path: string) => request<T>("DELETE", path),
+  // Lista com filtros/ordering/page → monta ?ordering=-timestamp&page=1
+  list: <T>(path: string, params?: QueryParams) =>
+    request<Paginated<T>>("GET", withQuery(path, params)),
 };
