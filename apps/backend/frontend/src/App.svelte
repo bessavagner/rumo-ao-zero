@@ -9,6 +9,7 @@
   import BottomNav from "./lib/BottomNav.svelte";
   import CaptureSheet from "./lib/CaptureSheet.svelte";
   import Toast from "./lib/Toast.svelte";
+  import { captura, fecharCaptura } from "./lib/capture.svelte";
 
   // Map de rotas simples e escalável (substitui o if/else aninhado).
   const ROTAS: Record<string, Component> = {
@@ -18,7 +19,6 @@
   };
   const Tela = $derived(ROTAS[route.path] ?? Hoje);
 
-  let sheetAberta = $state(false);
 </script>
 
 {#if !auth.token}
@@ -27,9 +27,9 @@
   <main>
     <Tela />
   </main>
-  <BottomNav onAdd={() => (sheetAberta = true)} />
-  {#if sheetAberta}
-    <CaptureSheet onClose={() => (sheetAberta = false)} />
+  <BottomNav />
+  {#if captura.aberta}
+    <CaptureSheet onClose={fecharCaptura} />
   {/if}
 {/if}
 <Toast />

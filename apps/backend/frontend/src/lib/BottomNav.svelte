@@ -1,21 +1,32 @@
 <script lang="ts">
   import { route, go } from "./router.svelte";
-  let { onAdd }: { onAdd: () => void } = $props();
+  import { abrirCaptura } from "./capture.svelte";
+
+  const ITENS = [
+    { path: "/hoje", label: "Início", ic: "⌂" },
+    { path: "/progresso", label: "Progresso", ic: "📈" },
+    { path: "/registros", label: "Registros", ic: "📋" },
+  ];
 </script>
 
 <nav class="tabbar">
-  <button class:active={route.path === "/hoje"} onclick={() => go("/hoje")}>Hoje</button>
-  <button class:active={route.path === "/registros"} onclick={() => go("/registros")}>Registros</button>
-  <button class="fab" onclick={onAdd} aria-label="Registrar">+</button>
-  <button class:active={route.path === "/progresso"} onclick={() => go("/progresso")}>Progresso</button>
+  {#each ITENS as it}
+    <button class="it" class:active={route.path === it.path} onclick={() => go(it.path)}>
+      <span class="ic">{it.ic}</span>
+      <span class="lb">{it.label}</span>
+    </button>
+  {/each}
+  <button class="plus" onclick={() => abrirCaptura()} aria-label="Registrar">＋</button>
 </nav>
 
 <style>
-  .tabbar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around;
-    align-items: center; background: var(--surface-nav); border-top: 1px solid var(--border);
-    padding: 8px 0 calc(12px + env(safe-area-inset-bottom)); }
-  button { background: none; border: none; color: var(--text-muted); font-size: 13px; padding: 6px 12px; }
-  button.active { color: var(--accent); }
-  .fab { width: 46px; height: 46px; border-radius: 50%; background: var(--accent); color: var(--accent-ink);
-    font-size: 26px; font-weight: 700; margin-top: -28px; box-shadow: 0 4px 14px rgba(94,234,212,.5); }
+  .tabbar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; align-items: center;
+    justify-content: space-around; gap: 4px; background: var(--surface-nav); border-top: 1px solid var(--border);
+    padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); max-width: 480px; margin: 0 auto; }
+  .it { background: none; border: none; color: var(--text-muted); display: flex; flex-direction: column;
+    align-items: center; gap: 2px; font-size: 11px; padding: 4px 8px; }
+  .it .ic { font-size: 18px; line-height: 1; }
+  .it.active { color: var(--accent); }
+  .plus { width: 44px; height: 44px; border-radius: var(--r-md); background: var(--accent);
+    color: var(--accent-ink); font-size: 24px; font-weight: 700; border: none; flex-shrink: 0; }
 </style>
