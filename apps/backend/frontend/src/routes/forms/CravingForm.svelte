@@ -2,11 +2,23 @@
   import { api } from "../../lib/api";
   import { formatApiError } from "../../lib/errors";
   import { toast } from "../../lib/toast.svelte";
+  import ConfirmDialog from "../../lib/ConfirmDialog.svelte";
   import type { CravingInput, CravingEvent, Substancia3 } from "../../lib/types";
 
   let { onDone, registro }: { onDone: () => void; registro?: CravingEvent } = $props();
 
   const editando = !!registro;
+  // Confirmação ao editar registro histórico (criar não pede).
+  let confirmar = $state(false);
+
+  // Autocomplete: gatilhos já existentes no mapa (o backend faz get-or-create no salvar).
+  let gatilhos = $state<string[]>([]);
+  $effect(() => {
+    api
+      .list<{ nome: string }>("/api/baseline/triggers/")
+      .then((p) => (gatilhos = p.results.map((t) => t.nome)))
+      .catch(() => {});
+  });
   let substancia = $state<Substancia3>(registro?.substancia ?? "alcool");
   let intensidade_pico = $state(registro?.intensidade_pico ?? 6);
   let gatilho_texto = $state(registro?.gatilho_texto ?? "");
@@ -65,7 +77,10 @@
 <label class="lab">Intensidade pico: {intensidade_pico}</label>
 <input type="range" min="0" max="10" aria-label="Intensidade pico" bind:value={intensidade_pico} />
 <label class="lab">Gatilho *</label>
-<input class="nota" placeholder="descreva o gatilho" bind:value={gatilho_texto} />
+<input class="nota" placeholder="descreva o gatilho" bind:value={gatilho_texto} list="gatilhos-craving" />
+<datalist id="gatilhos-craving">
+  {#each gatilhos as g}<option value={g}></option>{/each}
+</datalist>
 <label class="lab">Duração (min)</label>
 <input class="nota" type="number" inputmode="numeric" min="0" bind:value={duracao_min} />
 <label class="lab">Intensidade final: {intensidade_final}</label>
@@ -73,9 +88,19 @@
 <label class="lab">Aprendizado (opcional)</label>
 <input class="nota" placeholder="o que aprendi?" bind:value={aprendizado} />
 {#if erro}<p class="erro">{erro}</p>{/if}
-<button class="save" disabled={salvando} onclick={salvar}>
+<button class="save" disabled={salvando} onclick={() => (editando ? (confirmar = true) : salvar())}>
   {salvando ? "Salvando…" : editando ? "Salvar alterações" : "Salvar craving"}
 </button>
+
+{#if confirmar}
+  <ConfirmDialog
+    titulo="Salvar alterações neste registro?"
+    sub="Editar um registro histórico altera seus dados e pode afetar suas métricas e sua trajetória."
+    confirmLabel="Salvar"
+    onConfirm={() => { confirmar = false; salvar(); }}
+    onCancel={() => (confirmar = false)}
+  />
+{/if}
 
 <style>
   .lab { display: block; font-size: 11px; text-transform: uppercase; opacity: .6; margin: 12px 0 6px; }

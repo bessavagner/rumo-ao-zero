@@ -86,6 +86,74 @@ def test_pulso_exige_autenticacao():
 
 
 @pytest.mark.django_db
+def test_craving_autolink_cria_trigger_a_partir_do_texto():
+    """Craving criado pelo SPA (só gatilho_texto) ganha um Trigger do mapa (get-or-create)."""
+    from apps.baseline.models import Trigger
+    from apps.log.models import CravingEvent
+
+    user = User.objects.create_user(username="api", password="x")
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    resp = client.post(
+        "/api/log/cravings/",
+        {"timestamp": "2026-06-22T18:00", "substancia": "alcool",
+         "intensidade_pico": 7, "gatilho_texto": "fim de expediente"},
+        format="json",
+    )
+
+    assert resp.status_code == 201, resp.content
+    craving = CravingEvent.objects.get()
+    assert craving.trigger is not None
+    assert craving.trigger.nome == "fim de expediente"
+    assert Trigger.objects.filter(user=user).count() == 1
+
+
+@pytest.mark.django_db
+def test_craving_autolink_reusa_trigger_existente_case_insensitive():
+    """Não duplica o Trigger: reusa o do mapa por nome (case-insensitive)."""
+    from apps.baseline.models import Trigger
+
+    user = User.objects.create_user(username="api", password="x")
+    existente = Trigger.objects.create(user=user, nome="Fim de Expediente")
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    resp = client.post(
+        "/api/log/cravings/",
+        {"timestamp": "2026-06-22T18:00", "substancia": "alcool",
+         "intensidade_pico": 7, "gatilho_texto": "fim de expediente"},
+        format="json",
+    )
+
+    assert resp.status_code == 201, resp.content
+    assert resp.json()["trigger"] == existente.id
+    assert Trigger.objects.filter(user=user).count() == 1
+
+
+@pytest.mark.django_db
+def test_craving_editar_gatilho_texto_religa_trigger():
+    from apps.baseline.models import Trigger
+    from apps.log.models import CravingEvent
+
+    user = User.objects.create_user(username="api", password="x")
+    client = APIClient()
+    client.force_authenticate(user=user)
+    cid = client.post(
+        "/api/log/cravings/",
+        {"timestamp": "2026-06-22T18:00", "substancia": "alcool",
+         "intensidade_pico": 7, "gatilho_texto": "tédio"},
+        format="json",
+    ).json()["id"]
+
+    resp = client.patch(f"/api/log/cravings/{cid}/", {"gatilho_texto": "ansiedade"}, format="json")
+
+    assert resp.status_code == 200, resp.content
+    assert CravingEvent.objects.get(id=cid).trigger.nome == "ansiedade"
+    assert set(Trigger.objects.filter(user=user).values_list("nome", flat=True)) == {"tédio", "ansiedade"}
+
+
+@pytest.mark.django_db
 def test_escalas_rejeitam_fora_da_faixa():
     user = User.objects.create_user(username="api", password="x")
     client = APIClient()

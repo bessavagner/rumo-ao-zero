@@ -2,11 +2,14 @@
   import { api } from "../../lib/api";
   import { formatApiError } from "../../lib/errors";
   import { toast } from "../../lib/toast.svelte";
+  import ConfirmDialog from "../../lib/ConfirmDialog.svelte";
   import type { DailyEntryInput, DailyEntry } from "../../lib/types";
 
   let { onDone, registro }: { onDone: () => void; registro?: DailyEntry } = $props();
 
   const editando = !!registro;
+  // Confirmação ao editar registro histórico (criar não pede).
+  let confirmar = $state(false);
   let data = $state(registro?.data ?? new Date().toISOString().slice(0, 10));
   let humor = $state(registro?.humor ?? 3);
   let energia = $state(registro?.energia ?? 3);
@@ -86,9 +89,19 @@
 <label class="lab">Coisa difícil (opcional)</label>
 <input class="nota" placeholder="algo desafiador" bind:value={coisa_dificil} />
 {#if erro}<p class="erro">{erro}</p>{/if}
-<button class="save" disabled={salvando} onclick={salvar}>
+<button class="save" disabled={salvando} onclick={() => (editando ? (confirmar = true) : salvar())}>
   {salvando ? "Salvando…" : editando ? "Salvar alterações" : "Salvar daily"}
 </button>
+
+{#if confirmar}
+  <ConfirmDialog
+    titulo="Salvar alterações neste registro?"
+    sub="Editar um registro histórico altera seus dados e pode afetar suas métricas e sua trajetória."
+    confirmLabel="Salvar"
+    onConfirm={() => { confirmar = false; salvar(); }}
+    onCancel={() => (confirmar = false)}
+  />
+{/if}
 
 <style>
   .lab { display: block; font-size: 11px; text-transform: uppercase; opacity: .6; margin: 12px 0 6px; }

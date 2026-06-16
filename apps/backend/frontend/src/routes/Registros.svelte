@@ -2,6 +2,7 @@
   import { api } from "../lib/api";
   import { formatApiError } from "../lib/errors";
   import { toast } from "../lib/toast.svelte";
+  import ConfirmDialog from "../lib/ConfirmDialog.svelte";
   import PulsoForm from "./forms/PulsoForm.svelte";
   import DailyForm from "./forms/DailyForm.svelte";
   import CravingForm from "./forms/CravingForm.svelte";
@@ -20,7 +21,11 @@
   ];
 
   let tipo = $state<Tipo>("pulso");
-  let itens = $state<Registro[]>([]);
+  // Dados carregados JUNTO com o tipo a que pertencem: durante o recarregamento
+  // (assíncrono) ao trocar de aba, `tipo` já mudou mas os itens ainda são do tipo
+  // anterior — renderizar pelo `dados.tipo` evita aplicar a lógica de um tipo nos
+  // dados de outro (era a causa do crash em fmtDia ao trocar de aba).
+  let dados = $state<{ tipo: Tipo; itens: Registro[] }>({ tipo: "pulso", itens: [] });
   let carregando = $state(false);
   let erro = $state("");
 
@@ -32,14 +37,15 @@
   const tipoAtual = $derived(TIPOS.find((t) => t.id === tipo)!);
 
   async function carregar() {
+    const t = tipoAtual; // captura o tipo desta carga (tipo pode mudar durante o await)
     carregando = true;
     erro = "";
     try {
-      const page = await api.list<Registro>(tipoAtual.path, { ordering: tipoAtual.ordering });
-      itens = page.results;
+      const page = await api.list<Registro>(t.path, { ordering: t.ordering });
+      dados = { tipo: t.id, itens: page.results };
     } catch (e) {
       erro = formatApiError(e);
-      itens = [];
+      dados = { tipo: t.id, itens: [] };
     } finally {
       carregando = false;
     }
@@ -64,16 +70,16 @@
     return `${d}/${m}/${y.slice(2)}`;
   }
 
-  function resumo(r: Registro): { titulo: string; sub: string } {
-    if (tipo === "pulso") {
+  function resumo(r: Registro, t: Tipo): { titulo: string; sub: string } {
+    if (t === "pulso") {
       const p = r as Pulso;
       return { titulo: fmtData(p.timestamp), sub: `humor ${p.humor} · energia ${p.energia} · craving ${p.craving}` };
     }
-    if (tipo === "daily") {
+    if (t === "daily") {
       const d = r as DailyEntry;
       return { titulo: fmtDia(d.data), sub: `humor ${d.humor} · energia ${d.energia} · sono ${d.sono_h}h` };
     }
-    if (tipo === "craving") {
+    if (t === "craving") {
       const c = r as CravingEvent;
       return { titulo: fmtData(c.timestamp), sub: `${c.substancia} · pico ${c.intensidade_pico} · ${c.gatilho_texto}` };
     }
@@ -119,12 +125,12 @@
 {:else if erro}
   <p class="erro">{erro}</p>
   <button class="retry" onclick={carregar}>Tentar de novo</button>
-{:else if itens.length === 0}
+{:else if dados.itens.length === 0}
   <p class="msg">Nenhum registro de {tipoAtual.label.toLowerCase()} ainda.</p>
 {:else}
   <ul class="lista">
-    {#each itens as r (r.id)}
-      {@const res = resumo(r)}
+    {#each dados.itens as r (r.id)}
+      {@const res = resumo(r, dados.tipo)}
       <li class="item">
         <div class="info">
           <div class="titulo">{res.titulo}</div>
@@ -158,15 +164,14 @@
 
 <!-- Confirmação de delete -->
 {#if apagando}
-  <div class="dim" onclick={() => (apagando = null)} role="presentation"></div>
-  <div class="confirm" role="alertdialog" aria-modal="true">
-    <p class="c-titulo">Apagar este registro?</p>
-    <p class="c-sub">Esta ação não pode ser desfeita.</p>
-    <div class="c-acoes">
-      <button class="c-cancel" onclick={() => (apagando = null)}>Cancelar</button>
-      <button class="c-del" onclick={confirmarApagar}>Apagar</button>
-    </div>
-  </div>
+  <ConfirmDialog
+    titulo="Apagar este registro?"
+    sub="Esta ação não pode ser desfeita."
+    confirmLabel="Apagar"
+    perigo
+    onConfirm={confirmarApagar}
+    onCancel={() => (apagando = null)}
+  />
 {/if}
 
 <style>
@@ -190,13 +195,4 @@
     border-radius: var(--r-xl) var(--r-xl) 0 0; padding: 14px 16px calc(24px + env(safe-area-inset-bottom));
     max-width: 480px; margin: 0 auto; max-height: 88vh; overflow-y: auto; }
   .grab { width: 36px; height: 4px; background: #3a3a44; border-radius: 3px; margin: 0 auto 16px; }
-
-  .confirm { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 41;
-    width: 86vw; max-width: 360px; background: var(--surface-2); border-radius: var(--r-xl); padding: 20px; }
-  .c-titulo { font-size: 16px; font-weight: 700; }
-  .c-sub { font-size: 13px; opacity: .65; margin-top: 6px; }
-  .c-acoes { display: flex; gap: 10px; margin-top: 18px; }
-  .c-acoes button { flex: 1; border: none; border-radius: var(--r-md); padding: 12px; font-size: 15px; font-weight: 700; }
-  .c-cancel { background: var(--surface-3); color: var(--text); }
-  .c-del { background: var(--danger); color: #1a0606; }
 </style>

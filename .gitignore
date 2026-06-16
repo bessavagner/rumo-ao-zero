@@ -49,3 +49,6 @@ apps/backend/frontend/dist/
 
 # === claire (git worktrees locais da ferramenta) ===
 .claire/
+
+# === Playwright MCP (snapshots/artefatos de verificação local) ===
+.playwright-mcp/
