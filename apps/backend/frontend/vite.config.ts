@@ -1,10 +1,11 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
+import { svelteTesting } from "@testing-library/svelte/vite";
 
 // Build servido pelo Django em /static/spa/ (ver Fase C). Em dev, proxy /api -> gunicorn.
 export default defineConfig({
-  plugins: [svelte()],
+  plugins: [svelte(), svelteTesting()],
   base: "/static/spa/",
   build: {
     outDir: "dist",
