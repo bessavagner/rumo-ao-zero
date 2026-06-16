@@ -45,6 +45,7 @@ from registro_core import (  # noqa: E402
     registrar_diario,
     registrar_pulso,
     registrar_slip,
+    editar_gatilho,
     resolve_estado,
     resolve_substituicao,
     resolve_trigger,
@@ -94,6 +95,14 @@ def cmd_pulso(api: Api, a: argparse.Namespace) -> None:
 def cmd_trigger_upsert(api: Api, a: argparse.Namespace) -> None:
     tid, novo = resolve_trigger(api, a.nome, a.contexto or "")
     emit_ok({"tipo": "TRIGGER", "id": tid, "criado": novo, "nome": a.nome})
+
+
+def cmd_gatilho_editar(api: Api, a: argparse.Namespace) -> None:
+    emit_ok(editar_gatilho(
+        api, gatilho=a.gatilho, id=a.id, novo_nome=a.novo_nome, contexto=a.contexto,
+        emocao_precedente=a.emocao_precedente, estado_mais_comum=a.estado_mais_comum,
+        frequencia_semana=a.frequencia_semana, ativo=a.ativo,
+    ))
 
 
 def cmd_sub_upsert(api: Api, a: argparse.Namespace) -> None:
@@ -168,6 +177,19 @@ def build_parser() -> argparse.ArgumentParser:
     t.add_argument("--nome", required=True)
     t.add_argument("--contexto")
     t.set_defaults(func=cmd_trigger_upsert)
+
+    ge = sub.add_parser("gatilho-editar", help="edita um Trigger existente (por nome ou --id)")
+    ge.add_argument("--gatilho", help="nome do gatilho a editar (case-insensitive)")
+    ge.add_argument("--id", type=int, default=None, help="id do gatilho (use se o nome for ambíguo)")
+    ge.add_argument("--novo-nome", dest="novo_nome", help="renomeia o gatilho")
+    ge.add_argument("--contexto")
+    ge.add_argument("--emocao-precedente", dest="emocao_precedente")
+    ge.add_argument("--estado-mais-comum", dest="estado_mais_comum",
+                    help="nome de estado interno (get-or-create); '' desvincula")
+    ge.add_argument("--frequencia-semana", dest="frequencia_semana", type=int, default=None)
+    ge.add_argument("--ativo", action=argparse.BooleanOptionalAction, default=None,
+                    help="--ativo / --no-ativo (arquiva sem apagar)")
+    ge.set_defaults(func=cmd_gatilho_editar)
 
     su = sub.add_parser("sub-upsert", help="get-or-create Substitution por nome")
     su.add_argument("--nome", required=True)

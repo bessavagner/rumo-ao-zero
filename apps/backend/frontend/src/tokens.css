@@ -1,0 +1,60 @@
+/* Design tokens — tema dark mobile-first do "Rumo ao Zero".
+   Substitui o app.css (boilerplate do Vite, removido). As cores antes hardcoded
+   em 12+ arquivos viram variáveis aqui. Arquivos novos usam estas vars; os
+   legados continuam funcionando (ainda têm o hex literal). */
+:root {
+  /* Fundo / superfícies */
+  --bg: #0b0b10;
+  --surface: #1e1e27;
+  --surface-2: #1c1c25;
+  --surface-3: #26262f;
+  --surface-nav: #1a1a22;
+  --input-bg: #14141a;
+
+  /* Bordas */
+  --border: #2a2a32;
+  --border-2: #2a2a38;
+
+  /* Texto */
+  --text: #e8e8ee;
+  --text-muted: #8a8a94;
+
+  /* Acentos */
+  --accent: #5eead4; /* teal — ações primárias / streaks */
+  --accent-ink: #0b0b10; /* texto sobre acento */
+  --indigo: #6366f1; /* seletor de período */
+  --indigo-soft: #a5b4fc;
+  --warn: #fbbf24; /* dinheiro / atenção */
+  --danger: #f87171; /* erros / slip */
+
+  /* Raios */
+  --r-sm: 10px;
+  --r-md: 12px;
+  --r-lg: 14px;
+  --r-xl: 18px;
+
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+}
+
+/* Tipografia base das telas (antes vinha — errada — do app.css do Vite).
+   Mantém títulos compactos, mobile-first; telas podem sobrescrever. */
+h1 {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 16px;
+}
+h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+p {
+  margin: 0;
+}

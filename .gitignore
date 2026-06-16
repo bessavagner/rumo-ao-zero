@@ -42,3 +42,10 @@ Thumbs.db
 # === frontend Svelte (build local; dist servido apos collectstatic) ===
 apps/backend/frontend/node_modules/
 apps/backend/frontend/dist/
+
+# === backups de .env transferidos na mão (podem conter segredo) ===
+.env.pre-lan-bak
+*.bak
+
+# === claire (git worktrees locais da ferramenta) ===
+.claire/

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { api } from "../lib/api";
+  import { formatApiError } from "../lib/errors";
   import type { Dashboard } from "../lib/types";
 
   let dash = $state<Dashboard | null>(null);
@@ -8,7 +9,7 @@
   $effect(() => {
     api.get<Dashboard>("/api/dashboard/")
       .then((d) => (dash = d))
-      .catch(() => (erro = "Falha ao carregar."));
+      .catch((e) => (erro = formatApiError(e)));
   });
 </script>
 
