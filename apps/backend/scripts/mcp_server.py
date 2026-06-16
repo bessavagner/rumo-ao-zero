@@ -142,6 +142,31 @@ def registrar_slip(
         return _err(exc)
 
 
+@mcp.tool()
+def editar_gatilho(
+    gatilho: str | None = None, id: int | None = None,
+    novo_nome: str | None = None, contexto: str | None = None,
+    emocao_precedente: str | None = None, estado_mais_comum: str | None = None,
+    frequencia_semana: int | None = None, ativo: bool | None = None,
+) -> dict:
+    """Edita um GATILHO (Trigger) existente no mapa de gatilhos — corrigir/enriquecer/arquivar.
+
+    Identifique por `gatilho` (nome, busca case-insensitive) OU `id` (use o id se o nome
+    for ambíguo). Só envia os campos informados; os demais ficam intactos.
+    Campos: novo_nome (renomeia), contexto (texto), emocao_precedente, estado_mais_comum
+    (nome de um estado interno, get-or-create; ''=desvincula), frequencia_semana (0+),
+    ativo (false p/ arquivar sem apagar o histórico de cravings/slips ligados).
+    Pra DESCOBRIR/listar gatilhos antes de editar: consultar('baseline/triggers').
+    """
+    try:
+        return {"ok": True, **core.editar_gatilho(
+            _api(), gatilho=gatilho, id=id, novo_nome=novo_nome, contexto=contexto,
+            emocao_precedente=emocao_precedente, estado_mais_comum=estado_mais_comum,
+            frequencia_semana=frequencia_semana, ativo=ativo)}
+    except Exception as exc:  # noqa: BLE001
+        return _err(exc)
+
+
 # --------------------------------------------------------- tools de leitura/edição (MCP-only)
 
 _RECURSOS_LOG = {"daily", "cravings", "slips", "pulsos"}

@@ -137,6 +137,28 @@ def resolve_trigger(api: Api, nome: str, contexto: str = "") -> tuple[int, bool]
     return resolve_by_name(api, "/api/baseline/triggers/", nome, payload)
 
 
+def buscar_trigger(api: Api, nome: str) -> int:
+    """Encontra um Trigger EXISTENTE por nome (case-insensitive). NÃO cria — levanta se não achar.
+
+    Match exato vence; caindo nisso, se a busca trouxe exatamente 1 candidato, usa ele;
+    0 candidatos -> erro 'não encontrado'; vários -> erro 'ambíguo' com a lista (id, nome).
+    """
+    nome = nome.strip()
+    query = urllib.parse.urlencode({"search": nome})
+    matches = _results(api.get(f"/api/baseline/triggers/?{query}"))
+    for item in matches:
+        if str(item.get("nome", "")).strip().lower() == nome.lower():
+            return item["id"]
+    if len(matches) == 1:
+        return matches[0]["id"]
+    if not matches:
+        raise RegistroError(f"nenhum gatilho encontrado com nome ~ '{nome}'")
+    raise RegistroError(
+        f"gatilho '{nome}' é ambíguo; especifique o id",
+        detalhe=[{"id": m["id"], "nome": m.get("nome")} for m in matches],
+    )
+
+
 def resolve_substituicao(api: Api, nome: str, categoria: str | None) -> tuple[int, bool]:
     query = urllib.parse.urlencode({"search": nome.strip()})
     for item in _results(api.get(f"/api/baseline/substitutions/?{query}")):
@@ -180,6 +202,50 @@ def to_iso_date(value: str) -> str:
 def to_iso_datetime(data: str, hora: str) -> str:
     hh, _, mm = hora.strip().partition(":")
     return f"{to_iso_date(data)}T{int(hh):02d}:{int(mm or 0):02d}"
+
+
+# ------------------------------------------------------------------- edição de gatilho
+
+def editar_gatilho(
+    api: Api, *, gatilho=None, id=None, novo_nome=None, contexto=None,
+    emocao_precedente=None, estado_mais_comum=None, frequencia_semana=None, ativo=None,
+) -> dict:
+    """Edita (PATCH) um Trigger existente. Identifica por `gatilho` (nome) OU `id`.
+
+    Só envia os campos informados (None = não mexe). `estado_mais_comum`: nome de EstadoInterno
+    (get-or-create) ou '' p/ desvincular. `ativo=False` arquiva sem apagar histórico.
+    """
+    if id is None:
+        if not gatilho:
+            raise RegistroError("informe 'gatilho' (nome) ou 'id' para editar")
+        id = buscar_trigger(api, gatilho)
+    campos: dict = {}
+    if novo_nome is not None:
+        campos["nome"] = novo_nome.strip()
+    if contexto is not None:
+        campos["contexto"] = contexto
+    if emocao_precedente is not None:
+        campos["emocao_precedente"] = emocao_precedente
+    if frequencia_semana is not None:
+        campos["frequencia_semana"] = frequencia_semana
+    if ativo is not None:
+        campos["ativo"] = ativo
+    criados: list[str] = []
+    if estado_mais_comum is not None:
+        if str(estado_mais_comum).strip() == "":
+            campos["estado_mais_comum"] = None
+        else:
+            eid, novo = resolve_estado(api, estado_mais_comum)
+            campos["estado_mais_comum"] = eid
+            if novo:
+                criados.append(f"estado:{estado_mais_comum}")
+    if not campos:
+        raise RegistroError("nada para editar; informe ao menos um campo (novo_nome, contexto, …)")
+    atualizado = api.patch(f"/api/baseline/triggers/{int(id)}/", campos)
+    return {
+        "tipo": "GATILHO", "id": atualizado.get("id", int(id)),
+        "nome": atualizado.get("nome"), "criados": criados, "atualizado": atualizado,
+    }
 
 
 # ------------------------------------------------------------------- operações de registro
