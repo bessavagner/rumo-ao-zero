@@ -41,7 +41,7 @@
   .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 31; background: var(--surface-2);
     border-radius: var(--r-xl) var(--r-xl) 0 0; padding: 14px 16px calc(24px + env(safe-area-inset-bottom));
     max-width: 480px; margin: 0 auto; max-height: 88vh; overflow-y: auto; }
-  .grab { width: 36px; height: 4px; background: #3a3a44; border-radius: 3px; margin: 0 auto 14px; }
+  .grab { width: 36px; height: 4px; background: var(--border-2); border-radius: 3px; margin: 0 auto 14px; }
   .abas { display: flex; gap: 6px; margin-bottom: 14px; }
   .abas button { flex: 1; background: var(--surface); border: 1.5px solid var(--border-2);
     color: var(--text-muted); border-radius: var(--r-sm); padding: 8px 0; font-size: 13px; font-weight: 600; }
