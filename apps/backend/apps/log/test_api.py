@@ -159,15 +159,15 @@ def test_escalas_rejeitam_fora_da_faixa():
     client = APIClient()
     client.force_authenticate(user=user)
 
-    # humor é 1–5: 9 (acima do máx) e 0 (abaixo do mín) devem dar 400.
+    # humor é 0–10: 11 (acima do máx) e -1 (abaixo do mín) devem dar 400.
     acima = client.post(
         "/api/log/pulsos/",
-        {"timestamp": "2026-06-22T16:00", "humor": 9, "energia": 3},
+        {"timestamp": "2026-06-22T16:00", "humor": 11, "energia": 3},
         format="json",
     )
     abaixo = client.post(
         "/api/log/pulsos/",
-        {"timestamp": "2026-06-22T16:00", "humor": 0, "energia": 3},
+        {"timestamp": "2026-06-22T16:00", "humor": -1, "energia": 3},
         format="json",
     )
     # craving é 0–10: 50 deve dar 400.

@@ -4,8 +4,7 @@ from django.db import models
 
 from apps.baseline.models import Substitution, Trigger
 
-# Escalas subjetivas — faixas antes só convencionais (help_text); agora validadas no backend.
-ESCALA_1_5 = [MinValueValidator(1), MaxValueValidator(5)]
+# Escalas subjetivas — unificadas em 0–10 (antes humor/energia/sono_q eram 1–5). Validadas no backend.
 ESCALA_0_10 = [MinValueValidator(0), MaxValueValidator(10)]
 
 
@@ -16,10 +15,10 @@ class DailyEntry(models.Model):
     data = models.DateField()
 
     # Numéricos
-    humor = models.PositiveSmallIntegerField(help_text="1–5", validators=ESCALA_1_5)
-    energia = models.PositiveSmallIntegerField(help_text="1–5", validators=ESCALA_1_5)
+    humor = models.PositiveSmallIntegerField(help_text="0–10", validators=ESCALA_0_10)
+    energia = models.PositiveSmallIntegerField(help_text="0–10", validators=ESCALA_0_10)
     sono_h = models.DecimalField(max_digits=3, decimal_places=1)
-    sono_q = models.PositiveSmallIntegerField(help_text="1–5", validators=ESCALA_1_5)
+    sono_q = models.PositiveSmallIntegerField(help_text="0–10", validators=ESCALA_0_10)
     craving_pico = models.PositiveSmallIntegerField(help_text="0–10", default=0, validators=ESCALA_0_10)
 
     # Estado interno (ex-HALT) — catálogo extensível; vazio = nenhum estado marcado
@@ -149,8 +148,8 @@ class Pulso(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="pulsos")
     timestamp = models.DateTimeField()
 
-    humor = models.PositiveSmallIntegerField(help_text="1–5", validators=ESCALA_1_5)
-    energia = models.PositiveSmallIntegerField(help_text="1–5", validators=ESCALA_1_5)
+    humor = models.PositiveSmallIntegerField(help_text="0–10", validators=ESCALA_0_10)
+    energia = models.PositiveSmallIntegerField(help_text="0–10", validators=ESCALA_0_10)
     craving = models.PositiveSmallIntegerField(help_text="0–10", default=0, validators=ESCALA_0_10)
 
     # Mesmo catálogo ex-HALT do DailyEntry/CravingEvent; vazio = nenhum estado marcado.

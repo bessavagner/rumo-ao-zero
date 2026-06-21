@@ -65,7 +65,7 @@ def registrar_pulso(
 ) -> dict:
     """Registra um PULSO — check-in de humor/energia AO LONGO DO DIA (vários por dia).
 
-    data: 'YYYY-MM-DD' ou 'DD/MM'. hora: 'HH:MM'. humor/energia: 1–5.
+    data: 'YYYY-MM-DD' ou 'DD/MM'. hora: 'HH:MM'. humor/energia: 0–10.
     craving: intensidade da fissura no momento, 0–10 (opcional; default 0).
     estados: nomes de estados internos (ex-HALT: fome/raiva/solidão/cansaço/…), get-or-create.
     nota: observação curta do momento.
@@ -87,7 +87,7 @@ def registrar_diario(
 ) -> dict:
     """Registra o DIÁRIO — balanço reflexivo de fim de dia (1×/dia; repetir a data dá erro 400).
 
-    Obrigatórios: data, humor (1–5), energia (1–5), sono_h (horas, ex 7.5), sono_q (1–5).
+    Obrigatórios: data, humor (0–10), energia (0–10), sono_h (horas, ex 7.5), sono_q (0–10).
     Opcionais: craving_pico (0–10), estados (get-or-create), linhas (até 3), corpo, boa, dificil.
     """
     try:
