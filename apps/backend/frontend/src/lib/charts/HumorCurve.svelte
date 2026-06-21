@@ -11,8 +11,8 @@
   const innerW = $derived(W - PAD.left - PAD.right);
   const innerH = $derived(H - PAD.top - PAD.bottom);
 
-  const yMin = 1;
-  const yMax = 5;
+  const yMin = 0;
+  const yMax = 10;
 
   function xPos(i: number, total: number): number {
     if (total <= 1) return PAD.left + innerW / 2;
@@ -27,7 +27,7 @@
       ? pontos.map((p, i) => `${xPos(i, pontos.length)},${yPos(p.humor)}`).join(" ")
       : ""
   );
-  const yTicks = [1, 2, 3, 4, 5];
+  const yTicks = [0, 2, 4, 6, 8, 10];
   const labelFirst = $derived(pontos.length > 0 ? pontos[0].timestamp.slice(0, 10) : "");
   const labelLast = $derived(pontos.length > 1 ? pontos[pontos.length - 1].timestamp.slice(0, 10) : "");
 </script>
