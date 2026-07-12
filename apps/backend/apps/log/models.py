@@ -3,6 +3,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from apps.baseline.models import Substitution, Trigger
+from apps.baseline.taxonomia import SITUACOES, categoria_de, valida_estados, valida_situacoes
 
 # Escalas subjetivas — unificadas em 0–10 (antes humor/energia/sono_q eram 1–5). Validadas no backend.
 ESCALA_0_10 = [MinValueValidator(0), MaxValueValidator(10)]
@@ -21,8 +22,11 @@ class DailyEntry(models.Model):
     sono_q = models.PositiveSmallIntegerField(help_text="0–10", validators=ESCALA_0_10)
     craving_pico = models.PositiveSmallIntegerField(help_text="0–10", default=0, validators=ESCALA_0_10)
 
-    # Estado interno (ex-HALT) — catálogo extensível; vazio = nenhum estado marcado
-    estados = models.ManyToManyField("baseline.EstadoInterno", blank=True, related_name="daily_entries")
+    # Estado interno (ex-HALT) — códigos da taxonomia fixa; lista vazia = nenhum estado marcado.
+    estados_m2m = models.ManyToManyField(
+        "baseline.EstadoInterno", blank=True, related_name="daily_entries"
+    )
+    estados = models.JSONField(default=list, blank=True, validators=[valida_estados])
 
     # Substituições usadas hoje
     substituicoes = models.ManyToManyField(Substitution, blank=True)
@@ -69,9 +73,18 @@ class CravingEvent(models.Model):
     intensidade_final = models.PositiveSmallIntegerField(help_text="0–10", default=0, validators=ESCALA_0_10)
     tempo_para_baixar_3 = models.PositiveSmallIntegerField(null=True, blank=True, help_text="min até ≤3")
 
-    gatilho_texto = models.CharField(max_length=255)
+    # Gatilho: taxonomia fixa. O principal é o que conta nas barras do dashboard (um craving com
+    # 4 gatilhos não pode somar em 4 barras e distorcer "qual é o meu pior gatilho"); os
+    # adicionais alimentam a análise de co-ocorrência.
+    gatilho_texto = models.CharField(max_length=255, blank=True)  # legado — sai na migration 0009
     trigger = models.ForeignKey(Trigger, null=True, blank=True, on_delete=models.SET_NULL)
-    estados = models.ManyToManyField("baseline.EstadoInterno", blank=True, related_name="cravings")
+    gatilho = models.CharField(max_length=32, choices=SITUACOES)
+    gatilhos_adicionais = models.JSONField(default=list, blank=True, validators=[valida_situacoes])
+    detalhes = models.TextField(blank=True, help_text="O texto livre — opcional.")
+    estados_m2m = models.ManyToManyField(
+        "baseline.EstadoInterno", blank=True, related_name="cravings"
+    )
+    estados = models.JSONField(default=list, blank=True, validators=[valida_estados])
 
     # Thought record 7 colunas (parcial)
     pensamento_automatico = models.TextField(blank=True)
@@ -100,6 +113,11 @@ class CravingEvent(models.Model):
         ordering = ["-timestamp"]
         indexes = [models.Index(fields=["user", "-timestamp"])]
 
+    @property
+    def categoria(self) -> str | None:
+        """Categoria clínica (IDS/ISS) derivada da situação. Nunca armazenada — nunca diverge."""
+        return categoria_de(self.gatilho)
+
     def __str__(self):
         return f"Craving {self.substancia} {self.timestamp:%Y-%m-%d %H:%M}"
 
@@ -115,8 +133,12 @@ class Slip(models.Model):
 
     quantidade = models.CharField(max_length=64, blank=True, help_text="ex: 2 cervejas, 3 cigarros")
     contexto = models.TextField(blank=True)
-    gatilho_texto = models.CharField(max_length=255, blank=True)
+    gatilho_texto = models.CharField(max_length=255, blank=True)  # legado — sai na migration 0009
     trigger = models.ForeignKey(Trigger, null=True, blank=True, on_delete=models.SET_NULL)
+    gatilho = models.CharField(max_length=32, choices=SITUACOES)
+    gatilhos_adicionais = models.JSONField(default=list, blank=True, validators=[valida_situacoes])
+    detalhes = models.TextField(blank=True, help_text="O texto livre — opcional.")
+    estados = models.JSONField(default=list, blank=True, validators=[valida_estados])
     aprendizado = models.TextField(blank=True)
 
     # Reinício parcial: pode resetar só uma substância
@@ -130,6 +152,11 @@ class Slip(models.Model):
 
     class Meta:
         ordering = ["-timestamp"]
+
+    @property
+    def categoria(self) -> str | None:
+        """Categoria clínica (IDS/ISS) derivada da situação. Nunca armazenada — nunca diverge."""
+        return categoria_de(self.gatilho)
 
     def __str__(self):
         return f"Slip {self.substancia} {self.timestamp:%Y-%m-%d}"
@@ -153,7 +180,8 @@ class Pulso(models.Model):
     craving = models.PositiveSmallIntegerField(help_text="0–10", default=0, validators=ESCALA_0_10)
 
     # Mesmo catálogo ex-HALT do DailyEntry/CravingEvent; vazio = nenhum estado marcado.
-    estados = models.ManyToManyField("baseline.EstadoInterno", blank=True, related_name="pulsos")
+    estados_m2m = models.ManyToManyField("baseline.EstadoInterno", blank=True, related_name="pulsos")
+    estados = models.JSONField(default=list, blank=True, validators=[valida_estados])
     nota = models.CharField(max_length=255, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)

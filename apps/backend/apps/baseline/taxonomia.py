@@ -209,3 +209,24 @@ def carregar_mapa(nome: str) -> dict[str, str]:
             if texto and codigo:
                 mapa[texto] = codigo
     return mapa
+
+
+# ── Validators (usados pelos JSONFields; o DRF os herda do model e devolve 400) ───
+def _valida_codigos(valor, permitidos: frozenset[str], nome: str) -> None:
+    from django.core.exceptions import ValidationError
+
+    if not isinstance(valor, list):
+        raise ValidationError(f"{nome}: esperava uma lista de códigos.")
+    desconhecidos = [c for c in valor if c not in permitidos]
+    if desconhecidos:
+        raise ValidationError(
+            f"{nome}: código(s) fora da taxonomia: {', '.join(map(str, desconhecidos))}."
+        )
+
+
+def valida_situacoes(valor) -> None:
+    _valida_codigos(valor, CODIGOS_SITUACAO, "gatilhos_adicionais")
+
+
+def valida_estados(valor) -> None:
+    _valida_codigos(valor, CODIGOS_ESTADO, "estados")

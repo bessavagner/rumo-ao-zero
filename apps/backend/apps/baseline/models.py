@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from apps.baseline.taxonomia import SITUACOES, categoria_de
+
 
 class BaselineProfile(models.Model):
     """Snapshot do Dia 0 — preenchido uma vez, raramente editado."""
@@ -120,15 +122,25 @@ class Substitution(models.Model):
 
 
 class IfThenPlan(models.Model):
-    """Implementation Intentions (Gollwitzer)."""
+    """Implementation Intentions (Gollwitzer). "SE <situação> ENTÃO <ação>".
+
+    A situação vem da mesma taxonomia dos cravings — é o que permite ligar um craving ao plano
+    que existe para aquele gatilho. Sem `gatilhos_adicionais`: um plano responde a um gatilho.
+    """
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="ifthen_plans")
-    gatilho_texto = models.CharField(max_length=255)
+    gatilho_texto = models.CharField(max_length=255, blank=True)  # legado — sai na migration 0006
     trigger = models.ForeignKey(Trigger, null=True, blank=True, on_delete=models.SET_NULL)
+    gatilho = models.CharField(max_length=32, choices=SITUACOES)
+    detalhes = models.TextField(blank=True)
     acao = models.TextField()
     ativo = models.BooleanField(default=True)
     vezes_acionado = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def categoria(self) -> str | None:
+        return categoria_de(self.gatilho)
+
     def __str__(self):
-        return f"SE {self.gatilho_texto}"
+        return f"SE {self.gatilho}"
