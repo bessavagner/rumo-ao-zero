@@ -102,6 +102,7 @@ def registrar_diario(
 @mcp.tool()
 def registrar_craving(
     data: str, hora: str, substancia: str, intensidade_pico: int, gatilho: str,
+    gatilhos_adicionais: list[str] | None = None, detalhes: str | None = None,
     estados: list[str] | None = None, fiz: str | None = None, fiz_categoria: str | None = None,
     duracao_min: int | None = None, intensidade_final: int | None = None,
     tempo_baixar_3: int | None = None, aprendizado: str | None = None,
@@ -109,13 +110,16 @@ def registrar_craving(
     """Registra um CRAVING (fissura ≥6/10).
 
     substancia: 'alcool' | 'tabaco' | 'ambos'. intensidade_pico: 0–10.
-    gatilho: vira/liga um Trigger (get-or-create). fiz: vira/liga uma Substitution
-    (se NOVA, exige fiz_categoria ∈ oral/movimento/social/cognitivo/ambiental).
+    gatilho: CÓDIGO da taxonomia (tool `taxonomia`). gatilhos_adicionais: outros códigos, se
+    houver mais de uma situação. detalhes: a fala do Bessa, inteira. estados: lista de CÓDIGOS.
+    fiz: vira/liga uma Substitution (se NOVA, exige fiz_categoria ∈
+    oral/movimento/social/cognitivo/ambiental).
     """
     try:
         return {"ok": True, **core.registrar_craving(
             _api(), data=data, hora=hora, substancia=substancia, intensidade_pico=intensidade_pico,
-            gatilho=gatilho, estados=estados, fiz=fiz, fiz_categoria=fiz_categoria,
+            gatilho=gatilho, gatilhos_adicionais=gatilhos_adicionais, detalhes=detalhes,
+            estados=estados, fiz=fiz, fiz_categoria=fiz_categoria,
             duracao_min=duracao_min, intensidade_final=intensidade_final,
             tempo_baixar_3=tempo_baixar_3, aprendizado=aprendizado)}
     except Exception as exc:  # noqa: BLE001
@@ -124,55 +128,46 @@ def registrar_craving(
 
 @mcp.tool()
 def registrar_slip(
-    data: str, hora: str, substancia: str,
-    quantidade: str | None = None, contexto: str | None = None, gatilho: str | None = None,
+    data: str, hora: str, substancia: str, gatilho: str,
+    gatilhos_adicionais: list[str] | None = None, detalhes: str | None = None,
+    quantidade: str | None = None, contexto: str | None = None,
     aprendizado: str | None = None, reset_alcool: bool = False, reset_tabaco: bool = False,
 ) -> dict:
     """Registra um SLIP (recaída — DADO, sem julgamento).
 
     substancia: 'alcool' | 'tabaco' (slip não aceita 'ambos').
-    gatilho: vira/liga um Trigger (get-or-create). reset_*: zera o streak da substância.
+    gatilho: CÓDIGO da taxonomia (tool `taxonomia`). detalhes: a fala do Bessa, inteira.
+    reset_*: zera o streak da substância.
     """
     try:
         return {"ok": True, **core.registrar_slip(
-            _api(), data=data, hora=hora, substancia=substancia, quantidade=quantidade,
-            contexto=contexto, gatilho=gatilho, aprendizado=aprendizado,
+            _api(), data=data, hora=hora, substancia=substancia, gatilho=gatilho,
+            gatilhos_adicionais=gatilhos_adicionais, detalhes=detalhes, quantidade=quantidade,
+            contexto=contexto, aprendizado=aprendizado,
             reset_alcool=reset_alcool, reset_tabaco=reset_tabaco)}
     except Exception as exc:  # noqa: BLE001
         return _err(exc)
 
 
 @mcp.tool()
-def editar_gatilho(
-    gatilho: str | None = None, id: int | None = None,
-    novo_nome: str | None = None, contexto: str | None = None,
-    emocao_precedente: str | None = None, estado_mais_comum: str | None = None,
-    frequencia_semana: int | None = None, ativo: bool | None = None,
-) -> dict:
-    """Edita um GATILHO (Trigger) existente no mapa de gatilhos — corrigir/enriquecer/arquivar.
+def taxonomia() -> dict:
+    """Lista os CÓDIGOS válidos de gatilho (situação) e de estado interno.
 
-    Identifique por `gatilho` (nome, busca case-insensitive) OU `id` (use o id se o nome
-    for ambíguo). Só envia os campos informados; os demais ficam intactos.
-    Campos: novo_nome (renomeia), contexto (texto), emocao_precedente, estado_mais_comum
-    (nome de um estado interno, get-or-create; ''=desvincula), frequencia_semana (0+),
-    ativo (false p/ arquivar sem apagar o histórico de cravings/slips ligados).
-    Pra DESCOBRIR/listar gatilhos antes de editar: consultar('baseline/triggers').
+    A taxonomia é fixa: não existe criar gatilho novo. Chame isto quando não tiver certeza do
+    código, mapeie a fala do Bessa para a situação mais próxima e mande a frase inteira em
+    `detalhes`. Se nada servir, use `outro` — o texto continua preservado.
     """
     try:
-        return {"ok": True, **core.editar_gatilho(
-            _api(), gatilho=gatilho, id=id, novo_nome=novo_nome, contexto=contexto,
-            emocao_precedente=emocao_precedente, estado_mais_comum=estado_mais_comum,
-            frequencia_semana=frequencia_semana, ativo=ativo)}
-    except Exception as exc:  # noqa: BLE001
-        return _err(exc)
+        return {"ok": True, **core.taxonomia(_api())}
+    except core.RegistroError as exc:
+        return {"ok": False, "erro": str(exc), "detalhe": exc.detalhe}
 
 
 # --------------------------------------------------------- tools de leitura/edição (MCP-only)
 
 _RECURSOS_LOG = {"daily", "cravings", "slips", "pulsos"}
 _RECURSOS_OUTROS = {
-    "baseline/profile", "baseline/values", "baseline/triggers", "baseline/estados",
-    "baseline/substitutions", "baseline/ifthen",
+    "baseline/profile", "baseline/values", "baseline/substitutions", "baseline/ifthen",
     "backlog/items", "backlog/decisions", "backlog/consultas", "backlog/compras",
 }
 
@@ -184,7 +179,7 @@ def _path_recurso(recurso: str) -> str:
     if r not in {f"log/{x}" for x in _RECURSOS_LOG} and r not in _RECURSOS_OUTROS:
         raise RegistroError(
             f"recurso desconhecido '{recurso}'. Use ex.: pulsos, cravings, daily, slips, "
-            "baseline/estados, backlog/items"
+            "baseline/substitutions, backlog/items"
         )
     return f"/api/{r}/"
 
@@ -193,7 +188,7 @@ def _path_recurso(recurso: str) -> str:
 def consultar(recurso: str, filtros: dict | None = None) -> dict:
     """Consulta (GET) registros já gravados — para responder 'quantos cravings essa semana?' etc.
 
-    recurso: ex. 'pulsos', 'cravings', 'daily', 'slips', 'baseline/estados', 'backlog/items'.
+    recurso: ex. 'pulsos', 'cravings', 'daily', 'slips', 'baseline/substitutions', 'backlog/items'.
     filtros: querystring, ex. {'ordering': '-timestamp', 'substancia': 'alcool', 'page': 1}.
     Resposta paginada: {count, next, previous, results}.
     """
