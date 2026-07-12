@@ -37,3 +37,23 @@ class IfThenPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = IfThenPlan
         exclude = ["user"]
+
+
+class ItemTaxonomiaSerializer(serializers.Serializer):
+    codigo = serializers.CharField()
+    rotulo = serializers.CharField()
+
+
+class GrupoGatilhosSerializer(serializers.Serializer):
+    categoria = serializers.CharField()
+    rotulo = serializers.CharField()
+    situacoes = ItemTaxonomiaSerializer(many=True)
+
+
+class TaxonomiaGatilhosSerializer(serializers.Serializer):
+    grupos = GrupoGatilhosSerializer(many=True)
+    sem_categoria = ItemTaxonomiaSerializer(many=True)
+
+
+class TaxonomiaEstadosSerializer(serializers.Serializer):
+    estados = ItemTaxonomiaSerializer(many=True)

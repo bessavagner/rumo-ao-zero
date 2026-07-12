@@ -19,6 +19,8 @@ from apps.baseline.views import (
     EstadoInternoViewSet,
     IfThenPlanViewSet,
     SubstitutionViewSet,
+    TaxonomiaEstadosView,
+    TaxonomiaGatilhosView,
     TriggerViewSet,
     ValueViewSet,
 )
@@ -49,6 +51,8 @@ urlpatterns = [
     path("api/", include(router.urls)),
     path("api/dashboard/", DashboardView.as_view(), name="dashboard"),
     path("api/series/humor/", HumorSeriesView.as_view(), name="series-humor"),
+    path("api/taxonomia/gatilhos/", TaxonomiaGatilhosView.as_view(), name="taxonomia-gatilhos"),
+    path("api/taxonomia/estados/", TaxonomiaEstadosView.as_view(), name="taxonomia-estados"),
     path("api/auth/", include("rest_framework.urls")),  # login da browsable API
     path("api/auth/token/", obtain_auth_token, name="api-token"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
