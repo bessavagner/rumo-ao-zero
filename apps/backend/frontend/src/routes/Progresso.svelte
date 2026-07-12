@@ -16,7 +16,7 @@
     erro = "";
     Promise.all([
       api.get<HumorSeries>(`/api/series/humor/?dias=${dias}`),
-      api.get<Dashboard>("/api/dashboard/"),
+      api.get<Dashboard>(`/api/dashboard/?dias=${dias}`),
     ])
       .then(([s, d]) => {
         serie = s;
@@ -51,12 +51,16 @@
 
   <!-- Frequency bars -->
   <FreqBars
-    titulo="Gatilhos"
-    itens={(dash?.triggers_frequencia ?? []).map(t => ({ label: t.gatilho, valor: t.ocorrencias }))}
+    titulo={`Gatilhos — situações (${periodo}d)`}
+    itens={(dash?.triggers_frequencia.por_situacao ?? []).map(t => ({ label: t.rotulo, valor: t.ocorrencias }))}
+  />
+  <FreqBars
+    titulo="Gatilhos — categorias clínicas"
+    itens={(dash?.triggers_frequencia.por_categoria ?? []).map(c => ({ label: c.rotulo, valor: c.ocorrencias }))}
   />
   <FreqBars
     titulo="Estados"
-    itens={(dash?.estados_frequencia ?? []).map(e => ({ label: e.estado, valor: e.ocorrencias }))}
+    itens={(dash?.estados_frequencia ?? []).map(e => ({ label: e.rotulo, valor: e.ocorrencias }))}
   />
   <FreqBars
     titulo="Substituições (taxa)"
