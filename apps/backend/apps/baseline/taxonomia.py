@@ -139,17 +139,23 @@ REGRAS_GATILHO: list[tuple[str, list[str]]] = [
     ("discussao_atrito", ["discussao", "discuti", "briga", "brigamos", "atrito",
                           "bati de frente", "bateu de frente"]),
     ("frustracao_trabalho", ["frustracao", "frustrado", "frustrante", "chefe", "reuniao",
-                             "deadline", "trabalho"]),
+                             "deadline", "trabalho", "decepcao", "desvalorizado",
+                             "desvalorizado"]),
     ("ansiedade_estresse", ["ansiedade", "ansioso", "estresse", "estressado", "nervoso"]),
     ("tedio_vazio", ["tedio", "entediado", "vazio", "sem nada pra fazer"]),
-    ("tristeza_solidao", ["tristeza", "triste", "solidao", "sozinho", "solitario"]),
+    # Ciúmes não tem situação própria: por decisão do Bessa entra em tristeza/solidão (é o
+    # registro de emoção desagradável mais próximo do que ele descreve).
+    ("tristeza_solidao", ["tristeza", "triste", "solidao", "sozinho", "solitario",
+                          "ciumes", "ciume"]),
     ("apos_refeicao", ["apos refeicao", "depois de comer", "depois do almoco", "pos almoco",
                        "almoco", "jantar"]),
     ("cafe_pausa", ["cafe", "pausa", "cafezinho"]),
     ("cansaco_noite_mal_dormida", ["cansaco", "cansado", "exausto", "mal dormida", "nao dormi",
                                    "sono ruim"]),
     ("dor_mal_estar", ["dor de", "dor ", "mal estar", "mal-estar", "doente", "ressaca"]),
-    ("comemoracao", ["comemoracao", "comemorar", "comemorando", "boa noticia", "vitoria"]),
+    # Euforia e "produtiv" são gatilhos positivos e caem aqui (reforço positivo, no IDS).
+    ("comemoracao", ["comemoracao", "comemorar", "comemorando", "boa noticia", "vitoria",
+                     "euforia", "euforico", "produtiv"]),
     ("relaxar_recompensa", ["relaxar", "recompensa", "merecia", "me premiar"]),
     ("evento_social", ["churrasco", "bar", "festa", "aniversario", "evento"]),
     ("alguem_ofereceu", ["ofereceu", "ofereceram", "me oferecer"]),
@@ -161,13 +167,13 @@ REGRAS_ESTADO: list[tuple[str, list[str]]] = [
     ("fome", ["fome", "faminto"]),
     ("raiva", ["raiva", "irritado", "puto", "bravo"]),
     ("solidao", ["solidao", "solitario", "sozinho"]),
-    ("cansaco", ["cansaco", "cansado", "exausto", "esgotado"]),
-    ("ansiedade", ["ansiedade", "ansioso", "nervoso"]),
+    ("cansaco", ["cansaco", "cansado", "exausto", "esgotado", "sonolento", "sono"]),
+    ("ansiedade", ["ansiedade", "ansioso", "nervoso", "preocupado", "preocupacao"]),
     ("tedio", ["tedio", "entediado"]),
     ("frustracao", ["frustracao", "frustrado"]),
     ("tristeza", ["tristeza", "triste", "pra baixo"]),
     ("sobrecarga", ["sobrecarga", "sobrecarregado", "estresse", "estressado"]),
-    ("euforia", ["euforia", "euforico", "animado"]),
+    ("euforia", ["euforia", "euforico", "animado", "satisfacao", "satisfeito"]),
 ]
 
 
