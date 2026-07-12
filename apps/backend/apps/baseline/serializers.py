@@ -1,12 +1,6 @@
 from rest_framework import serializers
 
-from .models import BaselineProfile, EstadoInterno, IfThenPlan, Substitution, Trigger, Value
-
-
-class EstadoInternoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EstadoInterno
-        exclude = ["user"]
+from .models import BaselineProfile, IfThenPlan, Substitution, Value
 
 
 class BaselineProfileSerializer(serializers.ModelSerializer):
@@ -18,12 +12,6 @@ class BaselineProfileSerializer(serializers.ModelSerializer):
 class ValueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Value
-        exclude = ["user"]
-
-
-class TriggerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Trigger
         exclude = ["user"]
 
 

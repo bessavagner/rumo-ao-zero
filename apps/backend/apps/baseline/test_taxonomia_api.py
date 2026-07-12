@@ -46,3 +46,23 @@ def test_taxonomia_e_read_only_e_exige_autenticacao():
     client.force_authenticate(user=user)
     # Não existe caminho de criação de gatilho — nem aqui.
     assert client.post("/api/taxonomia/gatilhos/", {"codigo": "novo"}, format="json").status_code == 405
+
+
+@pytest.mark.django_db
+def test_rotas_do_catalogo_mutavel_nao_existem_mais():
+    """Não há mais catálogo no banco: nada de CRUD de gatilho/estado."""
+    user = User.objects.create_user(username="tax", password="x")
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    assert client.get("/api/baseline/triggers/").status_code == 404
+    assert client.get("/api/baseline/estados/").status_code == 404
+
+
+@pytest.mark.django_db
+def test_models_trigger_e_estadointerno_nao_existem_mais():
+    from django.apps import apps as apps_reais
+
+    nomes = {m.__name__ for m in apps_reais.get_app_config("baseline").get_models()}
+    assert "Trigger" not in nomes
+    assert "EstadoInterno" not in nomes

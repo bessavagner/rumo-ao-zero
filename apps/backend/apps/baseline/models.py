@@ -53,49 +53,6 @@ class Value(models.Model):
         return self.nome
 
 
-class EstadoInterno(models.Model):
-    """Estado interno que antecede o craving (ex-HALT). Catálogo EXTENSÍVEL pelo usuário.
-
-    Seeds: fome, raiva, solidão, cansaço (os 4 do HALT). O usuário pode adicionar outros
-    (frustrado, eufórico, sobrecarregado, ansioso, entediado, ...). Vazio nos logs = nenhum.
-    """
-
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="estados")
-    nome = models.CharField(max_length=64)
-    descricao = models.TextField(blank=True)
-    ordem = models.PositiveSmallIntegerField(default=0)
-    ativo = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = [("user", "nome")]
-        ordering = ["ordem", "nome"]
-        verbose_name = "Estado"
-        verbose_name_plural = "Estados"
-
-    def __str__(self):
-        return self.nome
-
-
-class Trigger(models.Model):
-    """Triggers Map — evolui ao longo do processo."""
-
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="triggers")
-    nome = models.CharField(max_length=128)
-    contexto = models.TextField(blank=True)
-    emocao_precedente = models.CharField(max_length=64, blank=True)
-    estado_mais_comum = models.ForeignKey(
-        "EstadoInterno", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
-    )
-    frequencia_semana = models.PositiveSmallIntegerField(default=0)
-    ativo = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.nome
-
-
 class Substitution(models.Model):
     """Banco de substituições — testadas e marcadas pela eficácia real."""
 
@@ -129,8 +86,6 @@ class IfThenPlan(models.Model):
     """
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="ifthen_plans")
-    gatilho_texto = models.CharField(max_length=255, blank=True)  # legado — sai na migration 0006
-    trigger = models.ForeignKey(Trigger, null=True, blank=True, on_delete=models.SET_NULL)
     gatilho = models.CharField(max_length=32, choices=SITUACOES)
     detalhes = models.TextField(blank=True)
     acao = models.TextField()

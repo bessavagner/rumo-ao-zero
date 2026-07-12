@@ -16,12 +16,10 @@ from apps.backlog.views import (
 )
 from apps.baseline.views import (
     BaselineProfileViewSet,
-    EstadoInternoViewSet,
     IfThenPlanViewSet,
     SubstitutionViewSet,
     TaxonomiaEstadosView,
     TaxonomiaGatilhosView,
-    TriggerViewSet,
     ValueViewSet,
 )
 from apps.log.metrics_views import DashboardView, HumorSeriesView
@@ -36,8 +34,6 @@ router.register("log/pulsos", PulsoViewSet)
 # baseline (Dia 0 + bibliotecas)
 router.register("baseline/profile", BaselineProfileViewSet)
 router.register("baseline/values", ValueViewSet)
-router.register("baseline/triggers", TriggerViewSet)
-router.register("baseline/estados", EstadoInternoViewSet)
 router.register("baseline/substitutions", SubstitutionViewSet)
 router.register("baseline/ifthen", IfThenPlanViewSet)
 # backlog (preenchido pelo assistente)

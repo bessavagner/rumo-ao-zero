@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from apps.baseline.models import Substitution, Trigger
+from apps.baseline.models import Substitution
 from apps.baseline.taxonomia import SITUACOES, categoria_de, valida_estados, valida_situacoes
 
 # Escalas subjetivas — unificadas em 0–10 (antes humor/energia/sono_q eram 1–5). Validadas no backend.
@@ -23,9 +23,6 @@ class DailyEntry(models.Model):
     craving_pico = models.PositiveSmallIntegerField(help_text="0–10", default=0, validators=ESCALA_0_10)
 
     # Estado interno (ex-HALT) — códigos da taxonomia fixa; lista vazia = nenhum estado marcado.
-    estados_m2m = models.ManyToManyField(
-        "baseline.EstadoInterno", blank=True, related_name="daily_entries"
-    )
     estados = models.JSONField(default=list, blank=True, validators=[valida_estados])
 
     # Substituições usadas hoje
@@ -76,14 +73,9 @@ class CravingEvent(models.Model):
     # Gatilho: taxonomia fixa. O principal é o que conta nas barras do dashboard (um craving com
     # 4 gatilhos não pode somar em 4 barras e distorcer "qual é o meu pior gatilho"); os
     # adicionais alimentam a análise de co-ocorrência.
-    gatilho_texto = models.CharField(max_length=255, blank=True)  # legado — sai na migration 0009
-    trigger = models.ForeignKey(Trigger, null=True, blank=True, on_delete=models.SET_NULL)
     gatilho = models.CharField(max_length=32, choices=SITUACOES)
     gatilhos_adicionais = models.JSONField(default=list, blank=True, validators=[valida_situacoes])
     detalhes = models.TextField(blank=True, help_text="O texto livre — opcional.")
-    estados_m2m = models.ManyToManyField(
-        "baseline.EstadoInterno", blank=True, related_name="cravings"
-    )
     estados = models.JSONField(default=list, blank=True, validators=[valida_estados])
 
     # Thought record 7 colunas (parcial)
@@ -133,8 +125,6 @@ class Slip(models.Model):
 
     quantidade = models.CharField(max_length=64, blank=True, help_text="ex: 2 cervejas, 3 cigarros")
     contexto = models.TextField(blank=True)
-    gatilho_texto = models.CharField(max_length=255, blank=True)  # legado — sai na migration 0009
-    trigger = models.ForeignKey(Trigger, null=True, blank=True, on_delete=models.SET_NULL)
     gatilho = models.CharField(max_length=32, choices=SITUACOES)
     gatilhos_adicionais = models.JSONField(default=list, blank=True, validators=[valida_situacoes])
     detalhes = models.TextField(blank=True, help_text="O texto livre — opcional.")
@@ -180,7 +170,6 @@ class Pulso(models.Model):
     craving = models.PositiveSmallIntegerField(help_text="0–10", default=0, validators=ESCALA_0_10)
 
     # Mesmo catálogo ex-HALT do DailyEntry/CravingEvent; vazio = nenhum estado marcado.
-    estados_m2m = models.ManyToManyField("baseline.EstadoInterno", blank=True, related_name="pulsos")
     estados = models.JSONField(default=list, blank=True, validators=[valida_estados])
     nota = models.CharField(max_length=255, blank=True)
 
