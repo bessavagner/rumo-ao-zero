@@ -19,14 +19,14 @@ class DailyEntryViewSet(OwnedModelViewSet):
 class CravingEventViewSet(OwnedModelViewSet):
     queryset = CravingEvent.objects.all()
     serializer_class = CravingEventSerializer
-    filterset_fields = ["substancia", "publicable"]
+    filterset_fields = ["substancia", "publicable", "gatilho"]
     ordering_fields = ["timestamp", "intensidade_pico"]
 
 
 class SlipViewSet(OwnedModelViewSet):
     queryset = Slip.objects.all()
     serializer_class = SlipSerializer
-    filterset_fields = ["substancia"]
+    filterset_fields = ["substancia", "gatilho"]
     ordering_fields = ["timestamp"]
 
 

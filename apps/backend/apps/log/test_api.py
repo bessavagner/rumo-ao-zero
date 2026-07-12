@@ -11,10 +11,7 @@ User = get_user_model()
 
 @pytest.mark.django_db
 def test_create_daily_entry_define_user_do_token():
-    from apps.baseline.models import EstadoInterno
-
     user = User.objects.create_user(username="api", password="x")
-    raiva = EstadoInterno.objects.create(user=user, nome="raiva")
     client = APIClient()
     client.force_authenticate(user=user)
 
@@ -27,7 +24,7 @@ def test_create_daily_entry_define_user_do_token():
             "sono_h": "7.0",
             "sono_q": 4,
             "craving_pico": 2,
-            "estados": [raiva.id],
+            "estados": ["raiva"],
         },
         format="json",
     )
@@ -35,7 +32,7 @@ def test_create_daily_entry_define_user_do_token():
     assert resp.status_code == 201, resp.content
     entry = DailyEntry.objects.get()
     assert entry.user == user
-    assert list(entry.estados.values_list("nome", flat=True)) == ["raiva"]
+    assert entry.estados == ["raiva"]
 
 
 @pytest.mark.django_db
@@ -47,10 +44,7 @@ def test_endpoints_exigem_autenticacao():
 
 @pytest.mark.django_db
 def test_pulso_aceita_varios_no_mesmo_dia_e_escopa_user():
-    from apps.baseline.models import EstadoInterno
-
     user = User.objects.create_user(username="api", password="x")
-    tedio = EstadoInterno.objects.create(user=user, nome="tédio")
     client = APIClient()
     client.force_authenticate(user=user)
 
@@ -62,7 +56,8 @@ def test_pulso_aceita_varios_no_mesmo_dia_e_escopa_user():
     )
     segundo = client.post(
         "/api/log/pulsos/",
-        {"timestamp": "2026-06-22T16:00", "humor": 2, "energia": 2, "craving": 7, "estados": [tedio.id], "nota": "fossa"},
+        {"timestamp": "2026-06-22T16:00", "humor": 2, "energia": 2, "craving": 7,
+         "estados": ["tedio"], "nota": "fossa"},
         format="json",
     )
 
@@ -72,10 +67,10 @@ def test_pulso_aceita_varios_no_mesmo_dia_e_escopa_user():
     p = Pulso.objects.get(humor=2)
     assert p.user == user
     assert p.craving == 7
-    assert p.estados.count() == 1
-    assert list(p.estados.values_list("nome", flat=True)) == ["tédio"]
-    # pulso sem craving usa o default 0
+    assert p.estados == ["tedio"]
+    # pulso sem craving usa o default 0, e sem estados fica lista vazia
     assert Pulso.objects.get(humor=4).craving == 0
+    assert Pulso.objects.get(humor=4).estados == []
 
 
 @pytest.mark.django_db
@@ -86,9 +81,7 @@ def test_pulso_exige_autenticacao():
 
 
 @pytest.mark.django_db
-def test_craving_autolink_cria_trigger_a_partir_do_texto():
-    """Craving criado pelo SPA (só gatilho_texto) ganha um Trigger do mapa (get-or-create)."""
-    from apps.baseline.models import Trigger
+def test_craving_grava_gatilho_da_taxonomia_com_adicionais_e_detalhes():
     from apps.log.models import CravingEvent
 
     user = User.objects.create_user(username="api", password="x")
@@ -97,60 +90,111 @@ def test_craving_autolink_cria_trigger_a_partir_do_texto():
 
     resp = client.post(
         "/api/log/cravings/",
-        {"timestamp": "2026-06-22T18:00", "substancia": "alcool",
-         "intensidade_pico": 7, "gatilho_texto": "fim de expediente"},
+        {"timestamp": "2026-06-22T18:00", "substancia": "alcool", "intensidade_pico": 7,
+         "gatilho": "fim_expediente",
+         "gatilhos_adicionais": ["cansaco_noite_mal_dormida"],
+         "detalhes": "bati de frente com o chefe e saí direto pro bar",
+         "estados": ["cansaco"]},
         format="json",
     )
 
     assert resp.status_code == 201, resp.content
     craving = CravingEvent.objects.get()
-    assert craving.trigger is not None
-    assert craving.trigger.nome == "fim de expediente"
-    assert Trigger.objects.filter(user=user).count() == 1
+    assert craving.gatilho == "fim_expediente"
+    assert craving.categoria == "urges_tentacoes"
+    assert craving.gatilhos_adicionais == ["cansaco_noite_mal_dormida"]
+    assert craving.estados == ["cansaco"]
+    assert "chefe" in craving.detalhes
 
 
 @pytest.mark.django_db
-def test_craving_autolink_reusa_trigger_existente_case_insensitive():
-    """Não duplica o Trigger: reusa o do mapa por nome (case-insensitive)."""
-    from apps.baseline.models import Trigger
+def test_craving_rejeita_gatilho_fora_da_taxonomia():
+    """O bug original: texto livre virava gatilho novo. Agora dá 400."""
+    from apps.log.models import CravingEvent
 
     user = User.objects.create_user(username="api", password="x")
-    existente = Trigger.objects.create(user=user, nome="Fim de Expediente")
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    texto_livre = client.post(
+        "/api/log/cravings/",
+        {"timestamp": "2026-06-22T18:00", "substancia": "alcool",
+         "intensidade_pico": 7, "gatilho": "Fim do expediente"},
+        format="json",
+    )
+    adicional_invalido = client.post(
+        "/api/log/cravings/",
+        {"timestamp": "2026-06-22T18:00", "substancia": "alcool", "intensidade_pico": 7,
+         "gatilho": "tedio_vazio", "gatilhos_adicionais": ["inventado"]},
+        format="json",
+    )
+    estado_invalido = client.post(
+        "/api/log/cravings/",
+        {"timestamp": "2026-06-22T18:00", "substancia": "alcool", "intensidade_pico": 7,
+         "gatilho": "tedio_vazio", "estados": ["cansado"]},
+        format="json",
+    )
+
+    assert texto_livre.status_code == 400, texto_livre.content
+    assert "gatilho" in texto_livre.json()
+    assert adicional_invalido.status_code == 400, adicional_invalido.content
+    assert estado_invalido.status_code == 400, estado_invalido.content
+    assert CravingEvent.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_craving_exige_gatilho():
+    user = User.objects.create_user(username="api", password="x")
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    resp = client.post(
+        "/api/log/cravings/",
+        {"timestamp": "2026-06-22T18:00", "substancia": "alcool", "intensidade_pico": 7},
+        format="json",
+    )
+
+    assert resp.status_code == 400, resp.content
+    assert "gatilho" in resp.json()
+
+
+@pytest.mark.django_db
+def test_slip_grava_gatilho_da_taxonomia():
+    from apps.log.models import Slip
+
+    user = User.objects.create_user(username="api", password="x")
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    resp = client.post(
+        "/api/log/slips/",
+        {"timestamp": "2026-06-22T22:00", "substancia": "alcool", "gatilho": "evento_social",
+         "detalhes": "churrasco na casa do meu irmão", "quantidade": "2 cervejas"},
+        format="json",
+    )
+
+    assert resp.status_code == 201, resp.content
+    assert Slip.objects.get().gatilho == "evento_social"
+
+
+@pytest.mark.django_db
+def test_api_nao_expoe_os_campos_legados():
+    """Não pode existir caminho que crie um gatilho: gatilho_texto/trigger saem do payload."""
+    user = User.objects.create_user(username="api", password="x")
     client = APIClient()
     client.force_authenticate(user=user)
 
     resp = client.post(
         "/api/log/cravings/",
         {"timestamp": "2026-06-22T18:00", "substancia": "alcool",
-         "intensidade_pico": 7, "gatilho_texto": "fim de expediente"},
+         "intensidade_pico": 7, "gatilho": "tedio_vazio"},
         format="json",
     )
 
     assert resp.status_code == 201, resp.content
-    assert resp.json()["trigger"] == existente.id
-    assert Trigger.objects.filter(user=user).count() == 1
-
-
-@pytest.mark.django_db
-def test_craving_editar_gatilho_texto_religa_trigger():
-    from apps.baseline.models import Trigger
-    from apps.log.models import CravingEvent
-
-    user = User.objects.create_user(username="api", password="x")
-    client = APIClient()
-    client.force_authenticate(user=user)
-    cid = client.post(
-        "/api/log/cravings/",
-        {"timestamp": "2026-06-22T18:00", "substancia": "alcool",
-         "intensidade_pico": 7, "gatilho_texto": "tédio"},
-        format="json",
-    ).json()["id"]
-
-    resp = client.patch(f"/api/log/cravings/{cid}/", {"gatilho_texto": "ansiedade"}, format="json")
-
-    assert resp.status_code == 200, resp.content
-    assert CravingEvent.objects.get(id=cid).trigger.nome == "ansiedade"
-    assert set(Trigger.objects.filter(user=user).values_list("nome", flat=True)) == {"tédio", "ansiedade"}
+    corpo = resp.json()
+    assert "gatilho_texto" not in corpo
+    assert "trigger" not in corpo
 
 
 @pytest.mark.django_db
