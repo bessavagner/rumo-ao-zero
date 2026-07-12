@@ -3,6 +3,7 @@
   import { formatApiError } from "../../lib/errors";
   import { toast } from "../../lib/toast.svelte";
   import ConfirmDialog from "../../lib/ConfirmDialog.svelte";
+  import GatilhoPicker from "../../lib/GatilhoPicker.svelte";
   import type { SlipInput, Slip, Substancia2 } from "../../lib/types";
 
   let { onDone, registro }: { onDone: () => void; registro?: Slip } = $props();
@@ -11,17 +12,11 @@
   // Confirmação ao editar registro histórico (criar não pede).
   let confirmar = $state(false);
 
-  // Autocomplete: gatilhos já existentes no mapa (o backend faz get-or-create no salvar).
-  let gatilhos = $state<string[]>([]);
-  $effect(() => {
-    api
-      .list<{ nome: string }>("/api/baseline/triggers/")
-      .then((p) => (gatilhos = p.results.map((t) => t.nome)))
-      .catch(() => {});
-  });
   let substancia = $state<Substancia2>(registro?.substancia ?? "alcool");
   let quantidade = $state(registro?.quantidade ?? "");
-  let gatilho_texto = $state(registro?.gatilho_texto ?? "");
+  let gatilho = $state(registro?.gatilho ?? "");
+  let adicionais = $state<string[]>([...(registro?.gatilhos_adicionais ?? [])]);
+  let detalhes = $state(registro?.detalhes ?? "");
   let contexto = $state(registro?.contexto ?? "");
   let reset_streak_alcool = $state(registro?.reset_streak_alcool ?? false);
   let reset_streak_tabaco = $state(registro?.reset_streak_tabaco ?? false);
@@ -31,12 +26,18 @@
   async function salvar() {
     if (salvando) return;
     erro = "";
+    if (!gatilho) {
+      erro = "Escolha o gatilho.";
+      return;
+    }
     salvando = true;
     const payload: SlipInput = {
       timestamp: registro?.timestamp ?? new Date().toISOString(),
       substancia,
+      gatilho,
+      gatilhos_adicionais: adicionais,
+      detalhes: detalhes.trim(),
       quantidade: quantidade.trim() || undefined,
-      gatilho_texto: gatilho_texto.trim() || undefined,
       contexto: contexto.trim() || undefined,
       reset_streak_alcool,
       reset_streak_tabaco,
@@ -65,11 +66,11 @@
 </select>
 <label class="lab">Quantidade (opcional)</label>
 <input class="nota" placeholder="ex: 2 cervejas" bind:value={quantidade} />
-<label class="lab">Gatilho (opcional)</label>
-<input class="nota" placeholder="o que aconteceu?" bind:value={gatilho_texto} list="gatilhos-slip" />
-<datalist id="gatilhos-slip">
-  {#each gatilhos as g}<option value={g}></option>{/each}
-</datalist>
+<GatilhoPicker bind:gatilho bind:adicionais idSelect="sl-gatilho" rotuloPrincipal="Gatilho *" />
+
+<label class="lab" for="sl-detalhes">Detalhes (opcional)</label>
+<input id="sl-detalhes" class="nota" placeholder="o que aconteceu, nas suas palavras" bind:value={detalhes} />
+
 <label class="lab">Contexto (opcional)</label>
 <textarea class="nota" placeholder="onde estava, com quem..." bind:value={contexto}></textarea>
 <div class="checks">

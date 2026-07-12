@@ -6,11 +6,20 @@ vi.mock("../lib/api", () => ({
     get: vi.fn(async (path: string) => {
       if (path.startsWith("/api/series/humor")) return { dias: 7, pontos: [] };
       return {
+        dias: 7,
         dias_ate_dia1: 0,
         streaks: { alcool: { consecutivo: 12, ano: 12 }, tabaco: { consecutivo: 12, ano: 12 } },
         dinheiro_economizado: 340,
         estados_frequencia: [],
-        triggers_frequencia: [{ gatilho: "fim de tarde", ocorrencias: 3 }],
+        triggers_frequencia: {
+          por_situacao: [
+            { situacao: "fim_expediente", rotulo: "Fim de expediente", ocorrencias: 3 },
+          ],
+          por_categoria: [
+            { categoria: "urges_tentacoes", rotulo: "Urges e tentações", ocorrencias: 3 },
+          ],
+          coocorrencia: [],
+        },
         substituicoes_eficacia: [],
       };
     }),
@@ -29,5 +38,13 @@ describe("Início (Hoje)", () => {
     await fireEvent.click(chip);
     expect(captura.aberta).toBe(true);
     expect(captura.aba).toBe("craving");
+  });
+
+  it("pede a janela de 7 dias e anuncia a janela que pediu", async () => {
+    const { api } = await import("../lib/api");
+    render(Hoje);
+    await screen.findByText("Gatilhos (7 dias)");
+    expect(api.get).toHaveBeenCalledWith("/api/dashboard/?dias=7");
+    await screen.findByText("Fim de expediente");
   });
 });

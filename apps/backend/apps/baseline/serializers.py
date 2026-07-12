@@ -1,12 +1,6 @@
 from rest_framework import serializers
 
-from .models import BaselineProfile, EstadoInterno, IfThenPlan, Substitution, Trigger, Value
-
-
-class EstadoInternoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EstadoInterno
-        exclude = ["user"]
+from .models import BaselineProfile, IfThenPlan, Substitution, Value
 
 
 class BaselineProfileSerializer(serializers.ModelSerializer):
@@ -21,12 +15,6 @@ class ValueSerializer(serializers.ModelSerializer):
         exclude = ["user"]
 
 
-class TriggerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Trigger
-        exclude = ["user"]
-
-
 class SubstitutionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Substitution
@@ -37,3 +25,23 @@ class IfThenPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = IfThenPlan
         exclude = ["user"]
+
+
+class ItemTaxonomiaSerializer(serializers.Serializer):
+    codigo = serializers.CharField()
+    rotulo = serializers.CharField()
+
+
+class GrupoGatilhosSerializer(serializers.Serializer):
+    categoria = serializers.CharField()
+    rotulo = serializers.CharField()
+    situacoes = ItemTaxonomiaSerializer(many=True)
+
+
+class TaxonomiaGatilhosSerializer(serializers.Serializer):
+    grupos = GrupoGatilhosSerializer(many=True)
+    sem_categoria = ItemTaxonomiaSerializer(many=True)
+
+
+class TaxonomiaEstadosSerializer(serializers.Serializer):
+    estados = ItemTaxonomiaSerializer(many=True)

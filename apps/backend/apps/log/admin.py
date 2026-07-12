@@ -12,16 +12,16 @@ class DailyEntryAdmin(admin.ModelAdmin):
 
 @admin.register(CravingEvent)
 class CravingEventAdmin(admin.ModelAdmin):
-    list_display = ("timestamp", "user", "substancia", "intensidade_pico", "gatilho_texto")
-    list_filter = ("user", "substancia", "publicable")
-    search_fields = ("gatilho_texto", "aprendizado")
+    list_display = ("timestamp", "user", "substancia", "intensidade_pico", "gatilho")
+    list_filter = ("user", "substancia", "gatilho", "publicable")
+    search_fields = ("detalhes", "aprendizado")
     date_hierarchy = "timestamp"
 
 
 @admin.register(Slip)
 class SlipAdmin(admin.ModelAdmin):
-    list_display = ("timestamp", "user", "substancia", "quantidade")
-    list_filter = ("user", "substancia")
+    list_display = ("timestamp", "user", "substancia", "quantidade", "gatilho")
+    list_filter = ("user", "substancia", "gatilho")
     date_hierarchy = "timestamp"
 
 

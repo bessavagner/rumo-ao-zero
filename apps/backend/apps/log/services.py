@@ -13,6 +13,7 @@ from datetime import date, timedelta
 from django.utils import timezone
 
 from apps.baseline.models import Substitution
+from apps.baseline.taxonomia import categoria_de, rotulo_categoria, rotulo_estado, rotulo_situacao
 
 from .models import CravingEvent, DailyEntry, Slip
 
@@ -95,26 +96,71 @@ def substituicoes_eficacia(user) -> list[dict]:
 
 
 def estados_frequencia(user, dias: int = 30) -> list[dict]:
-    """Frequência dos estados internos (ex-HALT) nos DailyEntry + CravingEvent dos últimos N dias."""
+    """Frequência dos estados internos (ex-HALT) nos DailyEntry + CravingEvent dos últimos N dias.
+
+    Códigos da taxonomia fixa: 'cansaço' e 'cansado' não podem mais coexistir como dois estados.
+    """
     desde = timezone.localdate() - timedelta(days=dias)
     contagem = Counter()
-    for ev in CravingEvent.objects.filter(user=user, timestamp__date__gte=desde).prefetch_related("estados"):
-        for e in ev.estados.all():
-            contagem[e.nome] += 1
-    for de in DailyEntry.objects.filter(user=user, data__gte=desde).prefetch_related("estados"):
-        for e in de.estados.all():
-            contagem[e.nome] += 1
-    return [{"estado": nome, "ocorrencias": n} for nome, n in contagem.most_common()]
-
-
-def triggers_frequencia(user, dias: int = 30) -> list[dict]:
-    """Frequência dos gatilhos nos últimos N dias, dos CravingEvent (Trigger ligado ou texto livre)."""
-    desde = timezone.localdate() - timedelta(days=dias)
-    contagem = Counter()
-    eventos = CravingEvent.objects.filter(
+    for codigos in CravingEvent.objects.filter(
         user=user, timestamp__date__gte=desde
-    ).values("trigger__nome", "gatilho_texto")
+    ).values_list("estados", flat=True):
+        contagem.update(codigos or [])
+    for codigos in DailyEntry.objects.filter(
+        user=user, data__gte=desde
+    ).values_list("estados", flat=True):
+        contagem.update(codigos or [])
+    return [
+        {"estado": c, "rotulo": rotulo_estado(c), "ocorrencias": n}
+        for c, n in contagem.most_common()
+    ]
+
+
+def triggers_frequencia(user, dias: int = 30) -> dict:
+    """Três cortes dos gatilhos dos CravingEvent dos últimos N dias.
+
+    1. `por_situacao` — SÓ o gatilho principal (são as barras do dashboard). Um craving com 4
+       gatilhos soma 1, não 4: senão "qual é o meu pior gatilho" volta a mentir.
+    2. `por_categoria` — a lente do IDS/ISS. 'outro' não tem categoria e não entra.
+    3. `coocorrencia` — quais adicionais aparecem junto de cada principal ("tédio quase sempre
+       vem junto com cansaço").
+
+    Agrega em Python de propósito: o SQLite não indexa JSONField, e a escala aqui é de algumas
+    centenas de eventos de um usuário só — o resto do services.py já agrega em Python por design.
+    """
+    desde = timezone.localdate() - timedelta(days=dias)
+    por_situacao = Counter()
+    por_categoria = Counter()
+    coocorrencia = Counter()
+
+    eventos = CravingEvent.objects.filter(user=user, timestamp__date__gte=desde).values(
+        "gatilho", "gatilhos_adicionais"
+    )
     for ev in eventos:
-        nome = ev["trigger__nome"] or ev["gatilho_texto"] or "(sem gatilho)"
-        contagem[nome] += 1
-    return [{"gatilho": nome, "ocorrencias": n} for nome, n in contagem.most_common()]
+        principal = ev["gatilho"] or "outro"
+        por_situacao[principal] += 1
+        categoria = categoria_de(principal)
+        if categoria:
+            por_categoria[categoria] += 1
+        for adicional in ev["gatilhos_adicionais"] or []:
+            if adicional != principal:
+                coocorrencia[(principal, adicional)] += 1
+
+    return {
+        "por_situacao": [
+            {"situacao": c, "rotulo": rotulo_situacao(c), "ocorrencias": n}
+            for c, n in por_situacao.most_common()
+        ],
+        "por_categoria": [
+            {"categoria": c, "rotulo": rotulo_categoria(c), "ocorrencias": n}
+            for c, n in por_categoria.most_common()
+        ],
+        "coocorrencia": [
+            {
+                "situacao": p, "rotulo": rotulo_situacao(p),
+                "adicional": a, "rotulo_adicional": rotulo_situacao(a),
+                "ocorrencias": n,
+            }
+            for (p, a), n in coocorrencia.most_common()
+        ],
+    }

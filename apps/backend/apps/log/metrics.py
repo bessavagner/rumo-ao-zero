@@ -13,12 +13,39 @@ class StreaksSerializer(serializers.Serializer):
     tabaco = StreakSerializer()
 
 
+class SituacaoFreqSerializer(serializers.Serializer):
+    situacao = serializers.CharField()
+    rotulo = serializers.CharField()
+    ocorrencias = serializers.IntegerField()
+
+
+class CategoriaFreqSerializer(serializers.Serializer):
+    categoria = serializers.CharField()
+    rotulo = serializers.CharField()
+    ocorrencias = serializers.IntegerField()
+
+
+class CoocorrenciaSerializer(serializers.Serializer):
+    situacao = serializers.CharField()
+    rotulo = serializers.CharField()
+    adicional = serializers.CharField()
+    rotulo_adicional = serializers.CharField()
+    ocorrencias = serializers.IntegerField()
+
+
+class TriggersFrequenciaSerializer(serializers.Serializer):
+    por_situacao = SituacaoFreqSerializer(many=True)
+    por_categoria = CategoriaFreqSerializer(many=True)
+    coocorrencia = CoocorrenciaSerializer(many=True)
+
+
 class DashboardSerializer(serializers.Serializer):
+    dias = serializers.IntegerField()
     dias_ate_dia1 = serializers.IntegerField()
     streaks = StreaksSerializer()
     dinheiro_economizado = serializers.FloatField()
     estados_frequencia = serializers.ListField(child=serializers.DictField())
-    triggers_frequencia = serializers.ListField(child=serializers.DictField())
+    triggers_frequencia = TriggersFrequenciaSerializer()
     substituicoes_eficacia = serializers.ListField(child=serializers.DictField())
 
 

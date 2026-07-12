@@ -12,6 +12,11 @@ from . import services
 from .metrics import DashboardSerializer, HumorSeriesSerializer
 from .models import DailyEntry, Pulso
 
+# `?dias=` vem direto da query string: sem limite, `timedelta(days=...)` estoura OverflowError
+# (500) para valores gigantes e um valor negativo devolve 200 com janela no futuro — o rótulo
+# "Gatilhos (-5 dias)" no front voltaria a mentir. 3650 = 10 anos, bem acima de qualquer uso real.
+DIAS_MAXIMO = 3650
+
 
 class DashboardView(APIView):
     permission_classes = [IsAuthenticated]
@@ -19,7 +24,13 @@ class DashboardView(APIView):
     @extend_schema(responses=DashboardSerializer)
     def get(self, request):
         user = request.user
+        try:
+            dias = int(request.query_params.get("dias", 30))
+        except ValueError:
+            dias = 30
+        dias = max(1, min(dias, DIAS_MAXIMO))
         data = {
+            "dias": dias,
             "dias_ate_dia1": services.dias_ate_dia1(user),
             "streaks": {
                 "alcool": {
@@ -32,8 +43,8 @@ class DashboardView(APIView):
                 },
             },
             "dinheiro_economizado": round(services.dinheiro_economizado(user), 2),
-            "estados_frequencia": services.estados_frequencia(user),
-            "triggers_frequencia": services.triggers_frequencia(user),
+            "estados_frequencia": services.estados_frequencia(user, dias),
+            "triggers_frequencia": services.triggers_frequencia(user, dias),
             "substituicoes_eficacia": services.substituicoes_eficacia(user),
         }
         return Response(data)
@@ -48,6 +59,7 @@ class HumorSeriesView(APIView):
             dias = int(request.query_params.get("dias", 30))
         except ValueError:
             dias = 30
+        dias = max(1, min(dias, DIAS_MAXIMO))
         desde = timezone.localdate() - timedelta(days=dias)
         pontos = []
         for p in Pulso.objects.filter(user=request.user, timestamp__date__gte=desde):

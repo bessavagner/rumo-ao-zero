@@ -1,8 +1,9 @@
 """Núcleo compartilhado de registro — usado pelo CLI (registro.py) E pelo servidor MCP (mcp_server.py).
 
-Fonte única da verdade pra: auth na API, resolução de nomes -> IDs (get-or-create de estado/
-trigger/substituição), parsing de data/hora e construção+POST dos registros DIÁRIO/CRAVING/
-SLIP/PULSO. Stdlib-only (urllib), pra rodar tanto no CLI (python do sistema) quanto no venv MCP.
+Fonte única da verdade pra: auth na API, resolução de nome -> ID (get-or-create de substituição;
+gatilho e estado são taxonomia FIXA — o assistente manda o código, ver `taxonomia()`), parsing de
+data/hora e construção+POST dos registros DIÁRIO/CRAVING/SLIP/PULSO. Stdlib-only (urllib), pra
+rodar tanto no CLI (python do sistema) quanto no venv MCP.
 
 As funções `registrar_*` RETORNAM um dict e LEVANTAM `RegistroError` em falha (campo faltando,
 erro da API). Quem chama formata a saída: o CLI imprime JSON + exit; o MCP devolve {"ok": ...}.
@@ -126,39 +127,6 @@ def resolve_by_name(api: Api, endpoint: str, nome: str, create_payload: dict) ->
     return created["id"], True
 
 
-def resolve_estado(api: Api, nome: str) -> tuple[int, bool]:
-    return resolve_by_name(api, "/api/baseline/estados/", nome, {"nome": nome})
-
-
-def resolve_trigger(api: Api, nome: str, contexto: str = "") -> tuple[int, bool]:
-    payload = {"nome": nome}
-    if contexto:
-        payload["contexto"] = contexto
-    return resolve_by_name(api, "/api/baseline/triggers/", nome, payload)
-
-
-def buscar_trigger(api: Api, nome: str) -> int:
-    """Encontra um Trigger EXISTENTE por nome (case-insensitive). NÃO cria — levanta se não achar.
-
-    Match exato vence; caindo nisso, se a busca trouxe exatamente 1 candidato, usa ele;
-    0 candidatos -> erro 'não encontrado'; vários -> erro 'ambíguo' com a lista (id, nome).
-    """
-    nome = nome.strip()
-    query = urllib.parse.urlencode({"search": nome})
-    matches = _results(api.get(f"/api/baseline/triggers/?{query}"))
-    for item in matches:
-        if str(item.get("nome", "")).strip().lower() == nome.lower():
-            return item["id"]
-    if len(matches) == 1:
-        return matches[0]["id"]
-    if not matches:
-        raise RegistroError(f"nenhum gatilho encontrado com nome ~ '{nome}'")
-    raise RegistroError(
-        f"gatilho '{nome}' é ambíguo; especifique o id",
-        detalhe=[{"id": m["id"], "nome": m.get("nome")} for m in matches],
-    )
-
-
 def resolve_substituicao(api: Api, nome: str, categoria: str | None) -> tuple[int, bool]:
     query = urllib.parse.urlencode({"search": nome.strip()})
     for item in _results(api.get(f"/api/baseline/substitutions/?{query}")):
@@ -172,16 +140,6 @@ def resolve_substituicao(api: Api, nome: str, categoria: str | None) -> tuple[in
         raise RegistroError(f"categoria inválida '{categoria}'", detalhe={"opcoes": SUBSTITUICAO_CATEGORIAS})
     created = api.post("/api/baseline/substitutions/", {"nome": nome.strip(), "categoria": categoria})
     return created["id"], True
-
-
-def _resolve_estados(api: Api, nomes, criados: list) -> list[int]:
-    ids = []
-    for nome in nomes:
-        eid, novo = resolve_estado(api, nome)
-        ids.append(eid)
-        if novo:
-            criados.append(f"estado:{nome}")
-    return ids
 
 
 # --------------------------------------------------------------------------- datas
@@ -204,48 +162,25 @@ def to_iso_datetime(data: str, hora: str) -> str:
     return f"{to_iso_date(data)}T{int(hh):02d}:{int(mm or 0):02d}"
 
 
-# ------------------------------------------------------------------- edição de gatilho
+# ------------------------------------------------------------------------ taxonomia
 
-def editar_gatilho(
-    api: Api, *, gatilho=None, id=None, novo_nome=None, contexto=None,
-    emocao_precedente=None, estado_mais_comum=None, frequencia_semana=None, ativo=None,
-) -> dict:
-    """Edita (PATCH) um Trigger existente. Identifica por `gatilho` (nome) OU `id`.
+def taxonomia(api: Api) -> dict:
+    """As situações e os estados válidos, achatados. É daqui que o assistente tira o código.
 
-    Só envia os campos informados (None = não mexe). `estado_mais_comum`: nome de EstadoInterno
-    (get-or-create) ou '' p/ desvincular. `ativo=False` arquiva sem apagar histórico.
+    A taxonomia é FIXA (mora em código no backend): não há get-or-create, não há criação. Mandar
+    um código fora da lista dá 400 — o que é o ponto: a normalização acontece na entrada.
     """
-    if id is None:
-        if not gatilho:
-            raise RegistroError("informe 'gatilho' (nome) ou 'id' para editar")
-        id = buscar_trigger(api, gatilho)
-    campos: dict = {}
-    if novo_nome is not None:
-        campos["nome"] = novo_nome.strip()
-    if contexto is not None:
-        campos["contexto"] = contexto
-    if emocao_precedente is not None:
-        campos["emocao_precedente"] = emocao_precedente
-    if frequencia_semana is not None:
-        campos["frequencia_semana"] = frequencia_semana
-    if ativo is not None:
-        campos["ativo"] = ativo
-    criados: list[str] = []
-    if estado_mais_comum is not None:
-        if str(estado_mais_comum).strip() == "":
-            campos["estado_mais_comum"] = None
-        else:
-            eid, novo = resolve_estado(api, estado_mais_comum)
-            campos["estado_mais_comum"] = eid
-            if novo:
-                criados.append(f"estado:{estado_mais_comum}")
-    if not campos:
-        raise RegistroError("nada para editar; informe ao menos um campo (novo_nome, contexto, …)")
-    atualizado = api.patch(f"/api/baseline/triggers/{int(id)}/", campos)
-    return {
-        "tipo": "GATILHO", "id": atualizado.get("id", int(id)),
-        "nome": atualizado.get("nome"), "criados": criados, "atualizado": atualizado,
-    }
+    gatilhos = api.get("/api/taxonomia/gatilhos/")
+    situacoes = [
+        {"codigo": s["codigo"], "rotulo": s["rotulo"], "categoria": g["categoria"]}
+        for g in gatilhos["grupos"]
+        for s in g["situacoes"]
+    ]
+    situacoes += [
+        {"codigo": s["codigo"], "rotulo": s["rotulo"], "categoria": None}
+        for s in gatilhos["sem_categoria"]
+    ]
+    return {"situacoes": situacoes, "estados": api.get("/api/taxonomia/estados/")["estados"]}
 
 
 # ------------------------------------------------------------------- operações de registro
@@ -256,11 +191,10 @@ def registrar_pulso(api: Api, *, data, hora, humor, energia, craving=None, estad
         payload["craving"] = craving
     if nota:
         payload["nota"] = nota
-    criados: list[str] = []
     if estados:
-        payload["estados"] = _resolve_estados(api, estados, criados)
+        payload["estados"] = list(estados)
     created = api.post("/api/log/pulsos/", payload)
-    return {"tipo": "PULSO", "id": created["id"], "timestamp": created["timestamp"], "criados": criados}
+    return {"tipo": "PULSO", "id": created["id"], "timestamp": created["timestamp"], "criados": []}
 
 
 def registrar_diario(
@@ -278,23 +212,34 @@ def registrar_diario(
             payload[field] = val
     for i, linha in enumerate((linhas or [])[:3], start=1):
         payload[f"linha_{i}"] = linha
-    criados: list[str] = []
     if estados:
-        payload["estados"] = _resolve_estados(api, estados, criados)
+        payload["estados"] = list(estados)
         payload["estado_checado"] = True
     created = api.post("/api/log/daily/", payload)
-    return {"tipo": "DIARIO", "id": created["id"], "data": created["data"], "criados": criados}
+    return {"tipo": "DIARIO", "id": created["id"], "data": created["data"], "criados": []}
 
 
 def registrar_craving(
     api: Api, *, data, hora, substancia, intensidade_pico, gatilho,
-    estados=None, fiz=None, fiz_categoria=None,
+    gatilhos_adicionais=None, detalhes=None, estados=None, fiz=None, fiz_categoria=None,
     duracao_min=None, intensidade_final=None, tempo_baixar_3=None, aprendizado=None,
 ) -> dict:
+    """`gatilho` é um CÓDIGO da taxonomia (ver `taxonomia()`), não texto livre.
+
+    A fala inteira do Bessa vai para `detalhes` — o texto nunca se perde, e o mapa não vira lixo.
+    """
+    if not gatilho:
+        raise RegistroError("craving exige 'gatilho' (código da taxonomia; veja a tool taxonomia)")
     payload: dict = {
         "timestamp": to_iso_datetime(data, hora), "substancia": substancia,
-        "intensidade_pico": intensidade_pico, "gatilho_texto": gatilho,
+        "intensidade_pico": intensidade_pico, "gatilho": gatilho,
     }
+    if gatilhos_adicionais:
+        payload["gatilhos_adicionais"] = list(gatilhos_adicionais)
+    if detalhes:
+        payload["detalhes"] = detalhes
+    if estados:
+        payload["estados"] = list(estados)
     for field, val in (
         ("duracao_min", duracao_min),
         ("intensidade_final", intensidade_final),
@@ -305,32 +250,30 @@ def registrar_craving(
     if aprendizado:
         payload["aprendizado"] = aprendizado
     criados: list[str] = []
-    # Substituição primeiro: única etapa que pode abortar (categoria nova faltando), então
-    # deixá-la antes evita criar Trigger/estado órfãos num registro que falharia depois.
     if fiz:
         sid, novo = resolve_substituicao(api, fiz, fiz_categoria)
         payload["substituicao_usada"] = sid
         if novo:
             criados.append(f"substituicao:{fiz}")
-    tid, novo = resolve_trigger(api, gatilho)
-    payload["trigger"] = tid
-    if novo:
-        criados.append(f"trigger:{gatilho}")
-    if estados:
-        payload["estados"] = _resolve_estados(api, estados, criados)
     created = api.post("/api/log/cravings/", payload)
     return {"tipo": "CRAVING", "id": created["id"], "timestamp": created["timestamp"], "criados": criados}
 
 
 def registrar_slip(
-    api: Api, *, data, hora, substancia,
-    quantidade=None, contexto=None, gatilho=None, aprendizado=None,
+    api: Api, *, data, hora, substancia, gatilho,
+    gatilhos_adicionais=None, detalhes=None, quantidade=None, contexto=None, aprendizado=None,
     reset_alcool=False, reset_tabaco=False,
 ) -> dict:
-    payload: dict = {"timestamp": to_iso_datetime(data, hora), "substancia": substancia}
+    if not gatilho:
+        raise RegistroError("slip exige 'gatilho' (código da taxonomia; veja a tool taxonomia)")
+    payload: dict = {
+        "timestamp": to_iso_datetime(data, hora), "substancia": substancia, "gatilho": gatilho,
+    }
+    if gatilhos_adicionais:
+        payload["gatilhos_adicionais"] = list(gatilhos_adicionais)
     for field, val in (
-        ("quantidade", quantidade), ("contexto", contexto),
-        ("gatilho_texto", gatilho), ("aprendizado", aprendizado),
+        ("detalhes", detalhes), ("quantidade", quantidade),
+        ("contexto", contexto), ("aprendizado", aprendizado),
     ):
         if val:
             payload[field] = val
@@ -338,11 +281,5 @@ def registrar_slip(
         payload["reset_streak_alcool"] = True
     if reset_tabaco:
         payload["reset_streak_tabaco"] = True
-    criados: list[str] = []
-    if gatilho:
-        tid, novo = resolve_trigger(api, gatilho)
-        payload["trigger"] = tid
-        if novo:
-            criados.append(f"trigger:{gatilho}")
     created = api.post("/api/log/slips/", payload)
-    return {"tipo": "SLIP", "id": created["id"], "timestamp": created["timestamp"], "criados": criados}
+    return {"tipo": "SLIP", "id": created["id"], "timestamp": created["timestamp"], "criados": []}

@@ -10,17 +10,22 @@
   let serie = $state<HumorSeries | null>(null);
   let erro = $state("");
 
+  const DIAS = 7; // a tela do Início fala da semana — então é a semana que ela pede.
+
   $effect(() => {
     Promise.all([
-      api.get<Dashboard>("/api/dashboard/"),
-      api.get<HumorSeries>("/api/series/humor/?dias=7"),
+      api.get<Dashboard>(`/api/dashboard/?dias=${DIAS}`),
+      api.get<HumorSeries>(`/api/series/humor/?dias=${DIAS}`),
     ])
       .then(([d, s]) => { dash = d; serie = s; })
       .catch((e) => (erro = formatApiError(e)));
   });
 
   const gatilhos = $derived(
-    (dash?.triggers_frequencia ?? []).map((t) => ({ label: t.gatilho, valor: t.ocorrencias }))
+    (dash?.triggers_frequencia.por_situacao ?? []).map((t) => ({
+      label: t.rotulo,
+      valor: t.ocorrencias,
+    }))
   );
 </script>
 
@@ -37,7 +42,7 @@
   {/if}
 
   <HumorCurve pontos={serie?.pontos ?? []} mini />
-  <FreqBars titulo="Gatilhos da semana" itens={gatilhos} compacto />
+  <FreqBars titulo={`Gatilhos (${dash.dias} dias)`} itens={gatilhos} compacto />
 
   <div class="chips">
     <button class="chip" onclick={() => abrirCaptura("pulso")}>+ Pulso</button>
