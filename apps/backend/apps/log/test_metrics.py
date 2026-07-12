@@ -89,3 +89,53 @@ def test_series_humor_junta_pulsos_e_dailies_ordenado():
 def test_series_humor_exige_autenticacao():
     client = APIClient()
     assert client.get("/api/series/humor/").status_code in (401, 403)
+
+
+@pytest.mark.django_db
+def test_dashboard_respeita_a_janela_e_a_devolve():
+    """O rótulo 'da semana' precisa poder ser verdade: o front pede ?dias=7 e recebe 7."""
+    user = _user_com_baseline(date.today() - timedelta(days=60))
+    antigo = date.today() - timedelta(days=20)
+    CravingEvent.objects.create(
+        user=user, timestamp=f"{antigo}T12:00:00Z", substancia="tabaco",
+        intensidade_pico=7, gatilho="tedio_vazio",
+    )
+    CravingEvent.objects.create(
+        user=user, timestamp=f"{date.today()}T12:00:00Z", substancia="tabaco",
+        intensidade_pico=8, gatilho="fim_expediente",
+    )
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    semana = client.get("/api/dashboard/?dias=7").json()
+    mes = client.get("/api/dashboard/").json()
+
+    assert semana["dias"] == 7
+    assert [b["situacao"] for b in semana["triggers_frequencia"]["por_situacao"]] == ["fim_expediente"]
+    assert mes["dias"] == 30
+    assert len(mes["triggers_frequencia"]["por_situacao"]) == 2
+
+
+@pytest.mark.django_db
+def test_dashboard_dias_invalido_cai_no_default():
+    user = _user_com_baseline(date.today() - timedelta(days=5))
+    client = APIClient()
+    client.force_authenticate(user=user)
+    assert client.get("/api/dashboard/?dias=abacaxi").json()["dias"] == 30
+
+
+@pytest.mark.django_db
+def test_dashboard_traz_os_tres_cortes_de_gatilho():
+    user = _user_com_baseline(date.today() - timedelta(days=5))
+    CravingEvent.objects.create(
+        user=user, timestamp=f"{date.today()}T12:00:00Z", substancia="tabaco",
+        intensidade_pico=8, gatilho="fim_expediente", gatilhos_adicionais=["bebendo"],
+    )
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    cortes = client.get("/api/dashboard/").json()["triggers_frequencia"]
+
+    assert cortes["por_situacao"][0]["rotulo"] == "Fim de expediente"
+    assert cortes["por_categoria"][0]["categoria"] == "urges_tentacoes"
+    assert cortes["coocorrencia"][0]["adicional"] == "bebendo"
