@@ -25,6 +25,12 @@ def migrar_gatilhos(apps, schema_editor):
 
 
 def migrar_estados(apps, schema_editor):
+    """Diferente de `migrar_gatilhos`: aqui não existe `detalhes` em `DailyEntry`/`Pulso` para
+    guardar o texto original. Se um nome de estado não estiver em `mapas/estados.csv`, ele NÃO
+    pode virar silenciosamente "outro" — o texto do usuário sumiria para sempre assim que as
+    migrations 0009 (log) + 0006 (baseline) apagarem `EstadoInterno` logo em seguida. Por isso
+    a migração aborta e exige revisão humana do CSV antes de rodar de novo.
+    """
     mapa = carregar_mapa("estados")
     for label in ("log.CravingEvent", "log.DailyEntry", "log.Pulso"):
         app_label, nome = label.split(".")
@@ -32,7 +38,14 @@ def migrar_estados(apps, schema_editor):
         for registro in Model.objects.all():
             codigos = []
             for estado in registro.estados_m2m.all():
-                codigo = mapa.get(normalizar(estado.nome), "outro")
+                chave = normalizar(estado.nome)
+                if chave not in mapa:
+                    raise RuntimeError(
+                        f"estado '{estado.nome}' não está em mapas/estados.csv. "
+                        "Rode `mapear_gatilhos --alvo estados --banco <db pré-migração>`, "
+                        "revise, atualize o CSV e commite antes de migrar."
+                    )
+                codigo = mapa[chave]
                 if codigo not in codigos:  # cansaço + cansado -> um código só
                     codigos.append(codigo)
             if codigos:
