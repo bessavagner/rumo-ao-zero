@@ -68,7 +68,16 @@ def test_categoria_e_property_derivada_e_none_para_outro():
 @pytest.mark.django_db
 def test_detalhes_e_opcional_e_guarda_o_texto_livre():
     user = User.objects.create_user(username="m", password="x")
-    c = _craving(user, detalhes="")
-    c.full_clean()
-    c.save()
-    assert CravingEvent.objects.get().detalhes == ""
+
+    # Vazio é válido: `detalhes` é opcional.
+    vazio = _craving(user, detalhes="")
+    vazio.full_clean()
+    vazio.save()
+    assert CravingEvent.objects.get(pk=vazio.pk).detalhes == ""
+
+    # Com texto: o que o usuário escreveu precisa voltar intacto do banco.
+    texto = "[texto do log — removido do versionamento]"
+    com_texto = _craving(user, detalhes=texto)
+    com_texto.full_clean()
+    com_texto.save()
+    assert CravingEvent.objects.get(pk=com_texto.pk).detalhes == texto
