@@ -80,12 +80,12 @@ def test_substituicoes_eficacia():
     s = Substitution.objects.create(user=user, nome="Caminhada", categoria="movimento")
     CravingEvent.objects.create(
         user=user, timestamp=timezone.now(), substancia="tabaco",
-        intensidade_pico=8, gatilho_texto="tédio", substituicao_usada=s,
+        intensidade_pico=8, gatilho="tedio_vazio", substituicao_usada=s,
         tempo_para_baixar_3=20,
     )
     CravingEvent.objects.create(
         user=user, timestamp=timezone.now(), substancia="tabaco",
-        intensidade_pico=6, gatilho_texto="tédio", substituicao_usada=s,
+        intensidade_pico=6, gatilho="tedio_vazio", substituicao_usada=s,
     )
     r = substituicoes_eficacia(user)
     assert r[0]["substituicao"] == "Caminhada"
@@ -96,21 +96,83 @@ def test_substituicoes_eficacia():
 
 @pytest.mark.django_db
 def test_estados_frequencia():
-    from apps.baseline.models import EstadoInterno
     from apps.log.models import CravingEvent
     from apps.log.services import estados_frequencia
 
     user = _user_com_baseline("est", 30)
-    cansaco = EstadoInterno.objects.create(user=user, nome="cansaço")
-    solidao = EstadoInterno.objects.create(user=user, nome="solidão")
-    c1 = CravingEvent.objects.create(
-        user=user, timestamp=timezone.now(), substancia="tabaco", intensidade_pico=7, gatilho_texto="x"
+    CravingEvent.objects.create(
+        user=user, timestamp=timezone.now(), substancia="tabaco", intensidade_pico=7,
+        gatilho="tedio_vazio", estados=["cansaco", "solidao"],
     )
-    c1.estados.add(cansaco, solidao)
-    c2 = CravingEvent.objects.create(
-        user=user, timestamp=timezone.now(), substancia="tabaco", intensidade_pico=6, gatilho_texto="y"
+    CravingEvent.objects.create(
+        user=user, timestamp=timezone.now(), substancia="tabaco", intensidade_pico=6,
+        gatilho="cafe_pausa", estados=["cansaco"],
     )
-    c2.estados.add(cansaco)
 
     r = estados_frequencia(user)
-    assert r[0] == {"estado": "cansaço", "ocorrencias": 2}
+    assert r[0] == {"estado": "cansaco", "rotulo": "Cansaço", "ocorrencias": 2}
+
+
+@pytest.mark.django_db
+def test_duas_digitacoes_do_mesmo_gatilho_viram_uma_barra_com_2():
+    """Regressão do bug que originou a spec: 'fim de expediente' e 'Fim do expediente' davam
+    duas barras de 1. Agora é impossível — os dois são o mesmo código."""
+    from apps.log.models import CravingEvent
+    from apps.log.services import triggers_frequencia
+
+    user = _user_com_baseline("bar", 30)
+    for detalhe in ("fim de expediente", "Fim do expediente"):
+        CravingEvent.objects.create(
+            user=user, timestamp=timezone.now(), substancia="tabaco", intensidade_pico=7,
+            gatilho="fim_expediente", detalhes=detalhe,
+        )
+
+    barras = triggers_frequencia(user)["por_situacao"]
+    assert barras == [
+        {"situacao": "fim_expediente", "rotulo": "Fim de expediente", "ocorrencias": 2}
+    ]
+
+
+@pytest.mark.django_db
+def test_adicionais_nao_somam_nas_barras_e_alimentam_a_coocorrencia():
+    """Um craving com 3 adicionais soma 1 na barra do principal, não 4 — senão 'qual é o meu
+    pior gatilho' fica errado de novo."""
+    from apps.log.models import CravingEvent
+    from apps.log.services import triggers_frequencia
+
+    user = _user_com_baseline("coo", 30)
+    CravingEvent.objects.create(
+        user=user, timestamp=timezone.now(), substancia="tabaco", intensidade_pico=9,
+        gatilho="tedio_vazio",
+        gatilhos_adicionais=["cansaco_noite_mal_dormida", "bebendo", "cafe_pausa"],
+    )
+
+    r = triggers_frequencia(user)
+    assert r["por_situacao"] == [
+        {"situacao": "tedio_vazio", "rotulo": "Tédio / vazio", "ocorrencias": 1}
+    ]
+    coocorrencias = {(c["situacao"], c["adicional"]): c["ocorrencias"] for c in r["coocorrencia"]}
+    assert coocorrencias == {
+        ("tedio_vazio", "cansaco_noite_mal_dormida"): 1,
+        ("tedio_vazio", "bebendo"): 1,
+        ("tedio_vazio", "cafe_pausa"): 1,
+    }
+
+
+@pytest.mark.django_db
+def test_por_categoria_agrega_pela_lente_do_ids_iss():
+    from apps.log.models import CravingEvent
+    from apps.log.services import triggers_frequencia
+
+    user = _user_com_baseline("cat", 30)
+    # Duas situações diferentes, MESMA categoria (urges e tentações) — e uma sem categoria.
+    for gatilho in ("fim_expediente", "cafe_pausa", "outro"):
+        CravingEvent.objects.create(
+            user=user, timestamp=timezone.now(), substancia="tabaco",
+            intensidade_pico=7, gatilho=gatilho,
+        )
+
+    por_categoria = triggers_frequencia(user)["por_categoria"]
+    assert por_categoria == [
+        {"categoria": "urges_tentacoes", "rotulo": "Urges e tentações", "ocorrencias": 2}
+    ]  # 'outro' não tem categoria: não aparece nesta lente
