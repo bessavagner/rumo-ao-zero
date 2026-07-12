@@ -159,8 +159,8 @@ def taxonomia() -> dict:
     """
     try:
         return {"ok": True, **core.taxonomia(_api())}
-    except core.RegistroError as exc:
-        return {"ok": False, "erro": str(exc), "detalhe": exc.detalhe}
+    except Exception as exc:  # noqa: BLE001 - mesmo padrão das outras tools (ex.: erro de rede)
+        return _err(exc)
 
 
 # --------------------------------------------------------- tools de leitura/edição (MCP-only)
