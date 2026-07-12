@@ -38,7 +38,7 @@ curl -s -X POST http://127.0.0.1:8000/api/auth/token/ \
 curl -s -X POST http://127.0.0.1:8000/api/log/daily/ \
   -H "Authorization: Token SEU_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"data":"2026-05-25","humor":3,"energia":4,"sono_h":"7.0","sono_q":4,"craving_pico":2,"halt":{}}'
+  -d '{"data":"2026-05-25","humor":3,"energia":4,"sono_h":"7.0","sono_q":4,"craving_pico":2,"estados":[]}'
 ```
 
 O campo `user` nunca vai no payload — é inferido do token.
@@ -51,7 +51,8 @@ O campo `user` nunca vai no payload — é inferido do token.
 | Cravings | `/api/log/cravings/` |
 | Slips | `/api/log/slips/` |
 | Baseline (Dia 0) | `/api/baseline/profile/` |
-| Triggers / Substituições / Valores / If-Then | `/api/baseline/{triggers,substitutions,values,ifthen}/` |
+| Substituições / Valores / If-Then | `/api/baseline/{substitutions,values,ifthen}/` |
+| Taxonomia de gatilhos / estados (read-only) | `/api/taxonomia/gatilhos/`, `/api/taxonomia/estados/` |
 | Backlog (itens) | `/api/backlog/items/` |
 | Decisões (ADR) | `/api/backlog/decisions/` |
 | Consultas | `/api/backlog/consultas/` |
