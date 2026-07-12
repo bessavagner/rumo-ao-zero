@@ -23,6 +23,12 @@ media/
 # Documentos médicos pessoais (nome/CPF/RG) — só no disco local, fora do git e do cloud
 docs/meds/
 
+# === docs de trabalho (pesquisa, planos, specs, vault antigo) — só no disco local ===
+# docs/screenshots/ continua versionado: o README do portfólio aponta pra ele
+docs/.ai/
+docs/superpowers/
+docs/obsidian_setup/
+
 # === oh-my-claudecode (estado local da máquina) ===
 .omc/
 
