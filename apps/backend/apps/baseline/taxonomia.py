@@ -223,7 +223,9 @@ def _valida_codigos(valor, permitidos: frozenset[str], nome: str) -> None:
 
     if not isinstance(valor, list):
         raise ValidationError(f"{nome}: esperava uma lista de códigos.")
-    desconhecidos = [c for c in valor if c not in permitidos]
+    # `not isinstance(c, str)` primeiro: um elemento dict/list não é hasheável e `in permitidos`
+    # estouraria TypeError (500) em vez de devolver 400 — a curto-circuito do `or` evita isso.
+    desconhecidos = [c for c in valor if not isinstance(c, str) or c not in permitidos]
     if desconhecidos:
         raise ValidationError(
             f"{nome}: código(s) fora da taxonomia: {', '.join(map(str, desconhecidos))}."
