@@ -72,6 +72,16 @@ The schema is a direct encoding of established behavior-change frameworks — th
 | **Pennebaker writing** across the first four days | Expressive-writing protocol |
 | **Hierarchy of Values** — 5 core values and how use erodes them | Values-based motivation (ACT) |
 | **Substitution bank**, ranked by *measured* effectiveness | Competing-response training |
+| **Craving/slip trigger** — a fixed taxonomy of 18 situations across 8 clinical categories | Marlatt & Gordon's relapse taxonomy (1985), operationalized by Annis' IDS/ISS |
+
+The trigger taxonomy deserves its own note: it's the one place the schema deliberately does
+*not* let the user free-type. Marlatt & Gordon's eight relapse-determinant categories were
+operationalized by Annis into the IDS (alcohol) and ISS (smoking) inventories — the same eight
+factors cover both substances, which is exactly this project's case (quitting both at once). A
+mutable trigger catalog sounds more flexible, but it silently answers the app's central question
+— *what's my worst trigger?* — with a lie: "End of workday" and "end of workday" (typed once
+each) become two separate bars, each under-counted. Fixing the taxonomy in code, with the
+category derived from the situation and never stored, means the count can't drift.
 
 ## Features
 
@@ -169,7 +179,8 @@ curl -s -X POST http://127.0.0.1:8000/api/log/daily/ \
 | Daily entries / Pulses | `/api/log/daily/` · `/api/log/pulsos/` |
 | Cravings / Slips | `/api/log/cravings/` · `/api/log/slips/` |
 | Baseline (Day 0) | `/api/baseline/profile/` |
-| Triggers · Substitutions · Values · If-Then · States | `/api/baseline/{triggers,substitutions,values,ifthen,estados}/` |
+| Substitutions · Values · If-Then | `/api/baseline/{substitutions,values,ifthen}/` |
+| Trigger / internal-state taxonomy (fixed, read-only) | `/api/taxonomia/{gatilhos,estados}/` |
 | Backlog · Decisions · Consultations · Purchases | `/api/backlog/{items,decisions,consultas,compras}/` |
 | Derived dashboard / Mood series | `/api/dashboard/` · `/api/series/humor/` |
 
