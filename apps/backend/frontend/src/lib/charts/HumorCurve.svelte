@@ -39,8 +39,8 @@
   {:else}
     <svg viewBox="0 0 {W} {H}" class="chart-svg" aria-label="Curva de humor">
       {#each yTicks as tick}
-        <line class="grid" x1={PAD.left} y1={yPos(tick)} x2={PAD.left + innerW} y2={yPos(tick)} />
-        <text x={PAD.left - 4} y={yPos(tick)} class="axis-label" text-anchor="end" dominant-baseline="middle">{tick}</text>
+        <line class="grid" class:zero={tick === 0} x1={PAD.left} y1={yPos(tick)} x2={PAD.left + innerW} y2={yPos(tick)} />
+        <text x={PAD.left - 4} y={yPos(tick)} class="axis-label" class:zero={tick === 0} text-anchor="end" dominant-baseline="middle">{tick}</text>
       {/each}
       <polyline class="linha" points={polyline} fill="none" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />
       {#each pontos as p, i}
@@ -63,7 +63,10 @@
   .vazio { font-size: 13px; color: var(--text-muted); margin: 0; padding-bottom: 4px; }
   .chart-svg { width: 100%; height: auto; display: block; }
   .axis-label { font-size: 9px; fill: var(--text-muted); font-family: inherit; }
+  .axis-label.zero { fill: var(--accent); font-weight: 600; }
   .grid { stroke: var(--border-2); stroke-width: 1; }
+  /* A "linha do zero": eixo 0 destacado em sage — a meta, a assinatura do app. */
+  .grid.zero { stroke: var(--accent-dim); stroke-width: 1.5; }
   .linha { stroke: var(--accent); }
   .ponto { fill: var(--accent); stroke: var(--bg); stroke-width: 1.5; }
 </style>

@@ -36,5 +36,5 @@
 
 <style>
   main { padding: 16px 16px 90px; max-width: 480px; margin: 0 auto; }
-  :global(body) { background: #0b0b10; color: #e8e8ee; font-family: system-ui, sans-serif; margin: 0; }
+  /* Cor/fonte do body vêm de tokens.css — não sobrescrever aqui. */
 </style>

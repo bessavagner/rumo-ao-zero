@@ -137,8 +137,12 @@
           <div class="sub">{res.sub}</div>
         </div>
         <div class="acoes">
-          <button class="edit" onclick={() => (editando = r)} aria-label="Editar">✏️</button>
-          <button class="del" onclick={() => (apagando = r)} aria-label="Apagar">🗑️</button>
+          <button class="edit" onclick={() => (editando = r)} aria-label="Editar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L18.5 9.5a2 2 0 0 0-2.83-2.83L5 17.17V20z" /><path d="M14 7.5 16.5 10" /></svg>
+          </button>
+          <button class="del" onclick={() => (apagando = r)} aria-label="Apagar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M10 7V5h4v2M8 7l1 12h6l1-12" /></svg>
+          </button>
         </div>
       </li>
     {/each}
@@ -175,7 +179,6 @@
 {/if}
 
 <style>
-  h1 { font-size: 22px; font-weight: 800; margin: 0 0 16px; }
   .tabs { display: flex; gap: 6px; margin-bottom: 16px; }
   .tabs button { flex: 1; background: var(--surface); border: 1.5px solid var(--border-2); color: var(--indigo-soft); border-radius: var(--r-sm); padding: 8px 0; font-size: 13px; font-weight: 600; }
   .tabs button.active { background: var(--indigo); border-color: var(--indigo); color: #fff; }
@@ -188,11 +191,13 @@
   .titulo { font-size: 14px; font-weight: 700; }
   .sub { font-size: 12px; opacity: .65; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .acoes { display: flex; gap: 6px; flex-shrink: 0; }
-  .acoes button { background: var(--surface-3); border: none; border-radius: var(--r-sm); padding: 8px 10px; font-size: 15px; }
+  .acoes button { background: var(--surface-3); border: none; border-radius: var(--r-sm); padding: 8px; display: grid; place-items: center; color: var(--text-muted); cursor: pointer; }
+  .acoes button svg { width: 17px; height: 17px; display: block; }
+  .acoes .del { color: var(--danger); }
 
   .dim { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 40; }
   .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; background: var(--surface-2);
     border-radius: var(--r-xl) var(--r-xl) 0 0; padding: 14px 16px calc(24px + env(safe-area-inset-bottom));
     max-width: 480px; margin: 0 auto; max-height: 88vh; overflow-y: auto; }
-  .grab { width: 36px; height: 4px; background: #3a3a44; border-radius: 3px; margin: 0 auto 16px; }
+  .grab { width: 36px; height: 4px; background: var(--border-2); border-radius: 3px; margin: 0 auto 16px; }
 </style>

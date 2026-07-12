@@ -70,12 +70,6 @@
     max-width: 480px;
     margin: 0 auto;
   }
-  h1 {
-    font-size: 22px;
-    font-weight: 800;
-    color: #e8e8ee;
-    margin: 0 0 16px 0;
-  }
   .periodo-sel {
     display: flex;
     gap: 8px;
@@ -83,10 +77,10 @@
   }
   .p-btn {
     flex: 1;
-    background: #1e1e27;
-    border: 1.5px solid #2a2a38;
-    color: #a5b4fc;
-    border-radius: 10px;
+    background: var(--surface);
+    border: 1.5px solid var(--border-2);
+    color: var(--indigo-soft);
+    border-radius: var(--r-sm);
     padding: 8px 0;
     font-size: 13px;
     font-weight: 600;
@@ -94,12 +88,12 @@
     transition: background 0.15s, border-color 0.15s, color 0.15s;
   }
   .p-btn.active {
-    background: #6366f1;
-    border-color: #6366f1;
+    background: var(--indigo);
+    border-color: var(--indigo);
     color: #fff;
   }
   .erro {
-    color: #f87171;
+    color: var(--danger);
     font-size: 14px;
     margin: 0 0 12px 0;
   }

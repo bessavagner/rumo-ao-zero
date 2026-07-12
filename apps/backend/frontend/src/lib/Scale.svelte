@@ -12,7 +12,8 @@
 
 <style>
   .lab { display: block; margin: 12px 0 6px; }
-  .lab > span { display: block; font-size: 11px; text-transform: uppercase; opacity: .6; margin-bottom: 6px; }
-  .val { color: var(--accent); font-weight: 700; font-size: 13px; }
+  .lab > span { display: block; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; opacity: .6; margin-bottom: 6px; }
+  .val { font-family: var(--display); font-optical-sizing: auto; font-variation-settings: "SOFT" 40;
+    font-feature-settings: "tnum" 1; color: var(--accent); font-weight: 500; font-size: 16px; }
   input[type=range] { width: 100%; display: block; }
 </style>

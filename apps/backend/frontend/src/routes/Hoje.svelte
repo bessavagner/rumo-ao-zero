@@ -50,10 +50,13 @@
 
 <style>
   .stat-row { display: flex; gap: 10px; margin-bottom: 10px; }
-  .stat { flex: 1; background: var(--surface); border-radius: var(--r-lg); padding: 14px; }
-  .n { font-size: 22px; font-weight: 800; color: var(--accent); }
-  .stat.money .n { color: var(--warn); font-size: 18px; }
-  .l { font-size: 11px; opacity: .6; text-transform: uppercase; letter-spacing: .04em; }
+  .stat { flex: 1; background: var(--surface); border-radius: var(--r-lg); padding: 14px 14px 12px; }
+  /* Número-herói em Fraunces tabular — o valor que você registra sobre si. */
+  .n { font-family: var(--display); font-optical-sizing: auto; font-weight: 500;
+    font-variation-settings: "SOFT" 40, "opsz" 34; font-feature-settings: "tnum" 1;
+    font-size: 30px; line-height: 1; letter-spacing: -0.6px; color: var(--accent); }
+  .stat.money .n { color: var(--warn); font-size: 22px; }
+  .l { font-size: 11px; font-weight: 600; opacity: .55; text-transform: uppercase; letter-spacing: .06em; margin-top: 5px; }
   .erro { color: var(--danger); } .aviso { opacity: .7; font-size: 14px; margin-bottom: 10px; }
   .chips { display: flex; gap: 8px; margin-top: 4px; }
   .chip { flex: 1; background: var(--surface-3); border: 1px solid var(--border-2); color: var(--accent);

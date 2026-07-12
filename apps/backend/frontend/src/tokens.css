@@ -1,7 +1,10 @@
-/* Design tokens — tema dark mobile-first do "Rumo ao Zero".
-   Substitui o app.css (boilerplate do Vite, removido). As cores antes hardcoded
-   em 12+ arquivos viram variáveis aqui. Arquivos novos usam estas vars; os
-   legados continuam funcionando (ainda têm o hex literal). */
+/* Design tokens — "Rumo ao Zero".
+   Tema: caderno de campo escuro (Field Journal). Dark-only, mobile-first.
+   Identidade tipográfica: Fraunces (soft serif) para títulos e os números que
+   você registra sobre si mesmo — registrar vira anotar, não preencher planilha.
+   Inter carrega a UI e os micro-rótulos. Assinatura: a "linha do zero" (régua
+   sage curta) sob os títulos e no eixo 0 do gráfico — tudo medido contra o zero,
+   que é a meta. Cores antes hardcoded em 12+ arquivos viram variáveis aqui. */
 :root {
   /* Fundo / superfícies */
   --bg: #0f140f;
@@ -22,10 +25,15 @@
   /* Acentos */
   --accent: #86efac;        /* sage green — ações primárias / streaks / curva / barras */
   --accent-ink: #0c1a10;    /* texto sobre acento */
-  --indigo: #6366f1;        /* mantido: seletor de período no Progresso */
+  --accent-dim: rgba(134, 239, 172, 0.4); /* linha do zero, réguas */
+  --indigo: #6366f1;        /* seletor de período no Progresso */
   --indigo-soft: #a5b4fc;
   --warn: #e7c9a0;          /* sand — dinheiro */
   --danger: #f87171;        /* erros / slip */
+
+  /* Tipografia — Field Journal */
+  --display: "Fraunces Variable", Georgia, "Times New Roman", serif;
+  --sans: "Inter Variable", system-ui, -apple-system, sans-serif;
 
   /* Raios (um pouco maiores p/ clima mais suave) */
   --r-sm: 12px;
@@ -40,21 +48,69 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, sans-serif;
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-/* Tipografia base das telas (antes vinha — errada — do app.css do Vite).
-   Mantém títulos compactos, mobile-first; telas podem sobrescrever. */
+/* Títulos — Fraunces suave (SOFT ~60, sem WONK: caloroso, não brincalhão).
+   Cada <h1> ganha a "linha do zero": régua sage curta, a assinatura do app. */
+h1,
+h2,
+h3.display {
+  font-family: var(--display);
+  font-optical-sizing: auto;
+  color: var(--text);
+}
 h1 {
-  font-size: 22px;
-  font-weight: 800;
-  margin: 0 0 16px;
+  font-size: 30px;
+  font-weight: 500;
+  font-variation-settings: "SOFT" 60, "opsz" 40;
+  letter-spacing: -0.4px;
+  line-height: 1.1;
+  margin: 4px 0 20px;
+}
+h1::after {
+  content: "";
+  display: block;
+  width: 26px;
+  height: 2px;
+  margin-top: 10px;
+  border-radius: 2px;
+  background: var(--accent);
 }
 h2 {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 500;
+  font-variation-settings: "SOFT" 60, "opsz" 28;
+  letter-spacing: -0.2px;
   margin: 0 0 8px;
 }
 p {
   margin: 0;
+}
+
+/* Números-herói: os valores registrados, em Fraunces com algarismos tabulares
+   (alinham em colunas). Utilitário reaproveitado por Início/Scale/etc. */
+.num {
+  font-family: var(--display);
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-variation-settings: "SOFT" 40, "opsz" 36;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+
+/* Eyebrow / micro-rótulos: papel utilitário → Inter, caixa alta, tracking. */
+.eyebrow {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
 }
