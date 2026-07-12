@@ -7,7 +7,15 @@
   import DailyForm from "./forms/DailyForm.svelte";
   import CravingForm from "./forms/CravingForm.svelte";
   import SlipForm from "./forms/SlipForm.svelte";
+  import { carregarGatilhos, rotuloDe } from "../lib/taxonomia.svelte";
   import type { Pulso, DailyEntry, CravingEvent, Slip } from "../lib/types";
+
+  // Os resumos mostram o RÓTULO da situação, não o código — mas o código nunca quebra a tela
+  // (rotuloDe devolve o próprio código antes da carga).
+  let taxCarregada = $state(0);
+  $effect(() => {
+    carregarGatilhos().then(() => (taxCarregada += 1)).catch(() => {});
+  });
 
   type Tipo = "pulso" | "daily" | "craving" | "slip";
   type Registro = Pulso | DailyEntry | CravingEvent | Slip;
@@ -81,10 +89,18 @@
     }
     if (t === "craving") {
       const c = r as CravingEvent;
-      return { titulo: fmtData(c.timestamp), sub: `${c.substancia} · pico ${c.intensidade_pico} · ${c.gatilho_texto}` };
+      void taxCarregada; // re-renderiza o resumo quando os rótulos chegam
+      return {
+        titulo: fmtData(c.timestamp),
+        sub: `${c.substancia} · pico ${c.intensidade_pico} · ${rotuloDe(c.gatilho)}`,
+      };
     }
     const s = r as Slip;
-    return { titulo: fmtData(s.timestamp), sub: `${s.substancia}${s.quantidade ? ` · ${s.quantidade}` : ""}` };
+    void taxCarregada;
+    return {
+      titulo: fmtData(s.timestamp),
+      sub: `${s.substancia} · ${rotuloDe(s.gatilho)}${s.quantidade ? ` · ${s.quantidade}` : ""}`,
+    };
   }
 
   function aoEditarFeito() {
