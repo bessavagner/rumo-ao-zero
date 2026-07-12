@@ -24,6 +24,16 @@
       .catch(() => {});
   });
 
+  // O principal nunca pode ficar em `adicionais`: se o usuário marca "bebendo" como adicional e
+  // depois troca o principal para "bebendo", o chip some da tela (o `{#if s.codigo !== gatilho}`
+  // abaixo filtra a lista visível) mas o código continuaria no array e iria no payload — sujeira
+  // silenciosa. Este efeito varre o array toda vez que `gatilho` muda.
+  $effect(() => {
+    if (gatilho && adicionais.includes(gatilho)) {
+      adicionais = adicionais.filter((c) => c !== gatilho);
+    }
+  });
+
   function alternar(lista: string[], codigo: string): string[] {
     return lista.includes(codigo) ? lista.filter((c) => c !== codigo) : [...lista, codigo];
   }
