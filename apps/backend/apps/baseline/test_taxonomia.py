@@ -9,9 +9,20 @@ def test_dezoito_situacoes_em_oito_categorias():
 
 
 def test_codigos_sao_unicos_e_ascii_snake_case():
-    codigos = [c for c, _ in tx.SITUACOES] + [c for c, _ in tx.CATEGORIAS] + [c for c, _ in tx.ESTADOS]
-    assert len(codigos) == len(set(codigos))
-    for c in codigos:
+    # Situações, categorias e estados são namespaces independentes: cada um deve ter códigos únicos
+    # dentro de si, mas a mesma string pode aparecer em namespaces diferentes (ex: "outro").
+
+    situacoes = [c for c, _ in tx.SITUACOES]
+    categorias = [c for c, _ in tx.CATEGORIAS]
+    estados = [c for c, _ in tx.ESTADOS]
+
+    # Unicidade dentro de cada namespace
+    assert len(situacoes) == len(set(situacoes)), "Código duplicado em SITUACOES"
+    assert len(categorias) == len(set(categorias)), "Código duplicado em CATEGORIAS"
+    assert len(estados) == len(set(estados)), "Código duplicado em ESTADOS"
+
+    # Formato ASCII, minúsculo, sem espaço, sem hífen — em todos os códigos
+    for c in situacoes + categorias + estados:
         assert c.isascii() and c.islower() and " " not in c and "-" not in c
 
 
@@ -58,3 +69,9 @@ def test_classificar_estado_colapsa_cansaco_e_solidao():
     assert tx.classificar_estado("cansado")[0] == "cansaco"
     assert tx.classificar_estado("solidão")[0] == "solidao"
     assert tx.classificar_estado("solitário")[0] == "solidao"
+
+
+def test_outro_existe_nos_dois_namespaces_e_isso_e_de_proposito():
+    # Situação e estado são namespaces independentes: cada um tem sua válvula de escape.
+    assert "outro" in tx.CODIGOS_SITUACAO
+    assert "outro" in tx.CODIGOS_ESTADO

@@ -79,7 +79,7 @@ ESTADOS: list[tuple[str, str]] = [
     ("tristeza", "Tristeza"),
     ("sobrecarga", "Sobrecarga"),
     ("euforia", "Euforia"),
-    ("outro_estado", "Outro"),
+    ("outro", "Outro"),
 ]
 _ROTULO_ESTADO: dict[str, str] = dict(ESTADOS)
 CODIGOS_ESTADO = frozenset(_ROTULO_ESTADO)
