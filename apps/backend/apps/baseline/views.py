@@ -13,6 +13,7 @@ from .serializers import (
     SubstitutionSerializer,
     TaxonomiaEstadosSerializer,
     TaxonomiaGatilhosSerializer,
+    TaxonomiaSubstituicoesSerializer,
     ValueSerializer,
 )
 
@@ -58,3 +59,13 @@ class TaxonomiaEstadosView(APIView):
     @extend_schema(responses=TaxonomiaEstadosSerializer)
     def get(self, request):
         return Response({"estados": taxonomia.lista_estados()})
+
+
+class TaxonomiaSubstituicoesView(APIView):
+    """As 5 categorias de enfrentamento. Read-only: moram em código, não no banco."""
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(responses=TaxonomiaSubstituicoesSerializer)
+    def get(self, request):
+        return Response({"substituicoes": taxonomia.lista_substituicoes()})

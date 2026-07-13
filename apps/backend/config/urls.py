@@ -20,6 +20,7 @@ from apps.baseline.views import (
     SubstitutionViewSet,
     TaxonomiaEstadosView,
     TaxonomiaGatilhosView,
+    TaxonomiaSubstituicoesView,
     ValueViewSet,
 )
 from apps.log.metrics_views import DashboardView, HumorSeriesView
@@ -49,6 +50,7 @@ urlpatterns = [
     path("api/series/humor/", HumorSeriesView.as_view(), name="series-humor"),
     path("api/taxonomia/gatilhos/", TaxonomiaGatilhosView.as_view(), name="taxonomia-gatilhos"),
     path("api/taxonomia/estados/", TaxonomiaEstadosView.as_view(), name="taxonomia-estados"),
+    path("api/taxonomia/substituicoes/", TaxonomiaSubstituicoesView.as_view(), name="taxonomia-substituicoes"),
     path("api/auth/", include("rest_framework.urls")),  # login da browsable API
     path("api/auth/token/", obtain_auth_token, name="api-token"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

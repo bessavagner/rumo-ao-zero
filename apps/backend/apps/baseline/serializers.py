@@ -45,3 +45,7 @@ class TaxonomiaGatilhosSerializer(serializers.Serializer):
 
 class TaxonomiaEstadosSerializer(serializers.Serializer):
     estados = ItemTaxonomiaSerializer(many=True)
+
+
+class TaxonomiaSubstituicoesSerializer(serializers.Serializer):
+    substituicoes = ItemTaxonomiaSerializer(many=True)

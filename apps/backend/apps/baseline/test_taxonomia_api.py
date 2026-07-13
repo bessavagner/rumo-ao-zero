@@ -66,3 +66,32 @@ def test_models_trigger_e_estadointerno_nao_existem_mais():
     nomes = {m.__name__ for m in apps_reais.get_app_config("baseline").get_models()}
     assert "Trigger" not in nomes
     assert "EstadoInterno" not in nomes
+
+
+@pytest.mark.django_db
+def test_substituicoes_devolve_as_cinco_categorias():
+    user = User.objects.create_user(username="tax", password="x")
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    resp = client.get("/api/taxonomia/substituicoes/")
+
+    assert resp.status_code == 200, resp.content
+    itens = resp.json()["substituicoes"]
+    assert [i["codigo"] for i in itens] == [
+        "oral", "movimento", "social", "cognitivo", "ambiental"
+    ]
+    assert "correr" in dict((i["codigo"], i["rotulo"]) for i in itens)["movimento"]
+
+
+@pytest.mark.django_db
+def test_taxonomia_de_substituicoes_e_read_only_e_exige_auth():
+    anonimo = APIClient()
+    assert anonimo.get("/api/taxonomia/substituicoes/").status_code in (401, 403)
+
+    user = User.objects.create_user(username="tax", password="x")
+    client = APIClient()
+    client.force_authenticate(user=user)
+    # Não existe caminho que crie substituição — nem aqui.
+    resp = client.post("/api/taxonomia/substituicoes/", {"codigo": "novo"}, format="json")
+    assert resp.status_code == 405
