@@ -17,6 +17,7 @@ export interface Taxonomia {
 // A taxonomia é fixa (mora em código no backend): buscar uma vez por sessão basta.
 let pedidoGatilhos: Promise<Taxonomia> | null = null;
 let pedidoEstados: Promise<Item[]> | null = null;
+let pedidoSubstituicoes: Promise<Item[]> | null = null;
 const rotulos = new Map<string, string>();
 
 function memorizar(itens: Item[]) {
@@ -46,6 +47,18 @@ export function carregarEstados(): Promise<Item[]> {
   return pedidoEstados;
 }
 
+export function carregarSubstituicoes(): Promise<Item[]> {
+  if (!pedidoSubstituicoes) {
+    pedidoSubstituicoes = api
+      .get<{ substituicoes: Item[] }>("/api/taxonomia/substituicoes/")
+      .then((r) => {
+        memorizar(r.substituicoes);
+        return r.substituicoes;
+      });
+  }
+  return pedidoSubstituicoes;
+}
+
 /** Rótulo humano de um código. Antes da carga, devolve o próprio código (nunca quebra a tela). */
 export function rotuloDe(codigo: string): string {
   return rotulos.get(codigo) ?? codigo;
@@ -55,5 +68,6 @@ export function rotuloDe(codigo: string): string {
 export function resetTaxonomia(): void {
   pedidoGatilhos = null;
   pedidoEstados = null;
+  pedidoSubstituicoes = null;
   rotulos.clear();
 }

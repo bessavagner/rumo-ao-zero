@@ -4,9 +4,9 @@
   import { toast } from "../../lib/toast.svelte";
   import ConfirmDialog from "../../lib/ConfirmDialog.svelte";
   import GatilhoPicker from "../../lib/GatilhoPicker.svelte";
-  import { carregarEstados } from "../../lib/taxonomia.svelte";
-  import type { Item } from "../../lib/taxonomia.svelte";
-  import type { CravingInput, CravingEvent, Substancia3, Substituicao } from "../../lib/types";
+  import { carregarEstados, carregarGatilhos, carregarSubstituicoes } from "../../lib/taxonomia.svelte";
+  import type { Item, Taxonomia } from "../../lib/taxonomia.svelte";
+  import type { CravingInput, CravingEvent, Substancia3 } from "../../lib/types";
 
   let { onDone, registro }: { onDone: () => void; registro?: CravingEvent } = $props();
 
@@ -16,13 +16,10 @@
   // A taxonomia é fixa e vem do backend (`apps/baseline/taxonomia.py`). Não há autocomplete de
   // texto livre: escolher da lista é um toque, e é o que impede o mapa de virar lixo.
   let estadosTax = $state<Item[]>([]);
-  let substituicoes = $state<Substituicao[]>([]);
+  let substituicoesTax = $state<Item[]>([]);
   $effect(() => {
     carregarEstados().then((e) => (estadosTax = e)).catch(() => {});
-    api
-      .list<Substituicao>("/api/baseline/substitutions/")
-      .then((p) => (substituicoes = p.results))
-      .catch(() => {});
+    carregarSubstituicoes().then((s) => (substituicoesTax = s)).catch(() => {});
   });
 
   let substancia = $state<Substancia3>(registro?.substancia ?? "alcool");
@@ -35,7 +32,8 @@
   let duracao_min = $state<number | string>(registro?.duracao_min ?? 0);
   let intensidade_final = $state(registro?.intensidade_final ?? 0);
   let tempo_para_baixar_3 = $state<number | string>(registro?.tempo_para_baixar_3 ?? "");
-  let substituicao_usada = $state<number | string>(registro?.substituicao_usada ?? "");
+  let substituicao = $state(registro?.substituicao ?? "");
+  let substituicao_detalhes = $state(registro?.substituicao_detalhes ?? "");
   let aprendizado = $state(registro?.aprendizado ?? "");
   let erro = $state("");
   let salvando = $state(false);
@@ -87,7 +85,8 @@
       duracao_min: dur,
       intensidade_final,
       tempo_para_baixar_3: baixar ?? null,
-      substituicao_usada: substituicao_usada === "" ? null : Number(substituicao_usada),
+      substituicao,
+      substituicao_detalhes: substituicao_detalhes.trim(),
       aprendizado: aprendizado.trim() || undefined,
     };
     try {
@@ -177,10 +176,14 @@
   <input id="cr-detalhes" class="nota" placeholder="o que aconteceu, nas suas palavras" bind:value={detalhes} />
 
   <label class="lab" for="cr-fiz">O que eu fiz</label>
-  <select id="cr-fiz" class="sel" bind:value={substituicao_usada}>
+  <select id="cr-fiz" class="sel" bind:value={substituicao}>
     <option value="">nada / não registrei</option>
-    {#each substituicoes as s}<option value={s.id}>{s.nome}</option>{/each}
+    {#each substituicoesTax as s}<option value={s.codigo}>{s.rotulo}</option>{/each}
   </select>
+
+  <label class="lab" for="cr-fiz-detalhes">O que você fez, nas suas palavras</label>
+  <input id="cr-fiz-detalhes" class="nota" placeholder="ex: corri 5k no fim da tarde"
+         bind:value={substituicao_detalhes} />
 
   <label class="lab" for="cr-baixar">Minutos até baixar para 3</label>
   <input id="cr-baixar" class="nota" type="number" inputmode="numeric" min="0"

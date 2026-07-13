@@ -17,7 +17,8 @@ export interface Dashboard {
   estados_frequencia: { estado: string; rotulo: string; ocorrencias: number }[];
   triggers_frequencia: TriggersFrequencia;
   substituicoes_eficacia: {
-    substituicao: string; usos: number; taxa_resolucao: number; tempo_medio_min: number | null;
+    substituicao: string; rotulo: string; usos: number; taxa_resolucao: number;
+    tempo_medio_min: number | null;
   }[];
 }
 export interface HumorPonto {
@@ -91,7 +92,8 @@ export interface CravingInput {
   duracao_min?: number;
   intensidade_final?: number;
   tempo_para_baixar_3?: number | null;
-  substituicao_usada?: number | null;
+  substituicao?: string;
+  substituicao_detalhes?: string;
   aprendizado?: string;
 }
 export interface CravingEvent {
@@ -111,7 +113,8 @@ export interface CravingEvent {
   evidencia_favor: string;
   evidencia_contra: string;
   pensamento_balanceado: string;
-  substituicao_usada: number | null;
+  substituicao: string;
+  substituicao_detalhes: string;
   aprendizado: string;
   if_then_gerado: number | null;
   publicable: boolean;
@@ -147,6 +150,3 @@ export interface Slip {
   cooldown_publicacao_ate: string | null;
   created_at: string;
 }
-
-// ── Substituição ─────────────────────────────────────────────────────────
-export interface Substituicao { id: number; nome: string; categoria: string; }

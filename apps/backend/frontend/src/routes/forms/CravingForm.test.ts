@@ -25,24 +25,33 @@ describe("CravingForm", () => {
     post.mockReset();
     patch.mockReset();
     list.mockReset();
-    get.mockImplementation(async (path: string) =>
-      path.includes("gatilhos")
-        ? {
-            grupos: [
-              {
-                categoria: "urges_tentacoes",
-                rotulo: "Urges e tentações",
-                situacoes: [
-                  { codigo: "fim_expediente", rotulo: "Fim de expediente" },
-                  { codigo: "bebendo", rotulo: "Bebendo (gatilho cruzado)" },
-                ],
-              },
-            ],
-            sem_categoria: [{ codigo: "outro", rotulo: "Outro" }],
-          }
-        : { estados: [{ codigo: "cansaco", rotulo: "Cansaço" }] },
-    );
-    list.mockResolvedValue({ results: [{ id: 3, nome: "Caminhada", categoria: "movimento" }] });
+    get.mockImplementation(async (path: string) => {
+      if (path.includes("gatilhos"))
+        return {
+          grupos: [
+            {
+              categoria: "urges_tentacoes",
+              rotulo: "Urges e tentações",
+              situacoes: [
+                { codigo: "fim_expediente", rotulo: "Fim de expediente" },
+                { codigo: "bebendo", rotulo: "Bebendo (gatilho cruzado)" },
+              ],
+            },
+          ],
+          sem_categoria: [{ codigo: "outro", rotulo: "Outro" }],
+        };
+      if (path.includes("substituicoes"))
+        return {
+          substituicoes: [
+            { codigo: "oral", rotulo: "Oral — chá, água, goma, comer algo" },
+            { codigo: "movimento", rotulo: "Movimento — andar, correr, alongar, qualquer coisa com o corpo" },
+            { codigo: "social", rotulo: "Social — ligar, mandar mensagem, ficar perto de alguém" },
+            { codigo: "cognitivo", rotulo: "Cognitivo — escrever, ler, respirar, esperar a onda passar" },
+            { codigo: "ambiental", rotulo: "Ambiental — mudar de ambiente, sair da situação" },
+          ],
+        };
+      return { estados: [{ codigo: "cansaco", rotulo: "Cansaço" }] };
+    });
     post.mockResolvedValue({ id: 42 });
     patch.mockResolvedValue({ id: 42 });
   });
@@ -56,27 +65,36 @@ describe("CravingForm", () => {
     expect(document.querySelector("datalist")).toBeNull();
   });
 
-  it("posta o código da situação, os adicionais e os campos da eficácia", async () => {
+  it("oferece as 5 categorias de substituição, não um catálogo", async () => {
+    render(CravingForm, { onDone: () => {} });
+    await screen.findByRole("option", { name: /Movimento/ });
+    // O rótulo precisa dizer que corrida cabe — era o bug.
+    const movimento = await screen.findByRole("option", { name: /Movimento/ });
+    expect(movimento.textContent).toContain("correr");
+    // O catálogo antigo não é mais buscado.
+    expect(list).not.toHaveBeenCalledWith("/api/baseline/substitutions/");
+  });
+
+  it("posta a categoria e o texto livre do que fez", async () => {
     render(CravingForm, { onDone: () => {} });
     await screen.findByRole("option", { name: "Fim de expediente" });
 
     await fireEvent.change(screen.getByLabelText("Gatilho principal"), {
       target: { value: "fim_expediente" },
     });
-    await fireEvent.click(screen.getByLabelText("Bebendo (gatilho cruzado)"));
-    await fireEvent.input(screen.getByLabelText("Minutos até baixar para 3"), {
-      target: { value: "18" },
+    await fireEvent.change(screen.getByLabelText("O que eu fiz"), {
+      target: { value: "movimento" },
     });
-    await fireEvent.change(screen.getByLabelText("O que eu fiz"), { target: { value: "3" } });
+    await fireEvent.input(screen.getByLabelText("O que você fez, nas suas palavras"), {
+      target: { value: "corri 5k" },
+    });
     await fireEvent.click(screen.getByRole("button", { name: "Salvar craving" }));
 
     expect(post).toHaveBeenCalledTimes(1);
     const [, corpo] = post.mock.calls[0];
-    expect(corpo.gatilho).toBe("fim_expediente");
-    expect(corpo.gatilhos_adicionais).toEqual(["bebendo"]);
-    expect(corpo.tempo_para_baixar_3).toBe(18);
-    expect(corpo.substituicao_usada).toBe(3);
-    expect(corpo.gatilho_texto).toBeUndefined();
+    expect(corpo.substituicao).toBe("movimento");
+    expect(corpo.substituicao_detalhes).toBe("corri 5k");
+    expect(corpo.substituicao_usada).toBeUndefined();
   });
 
   it("depois de salvar, oferece o thought record como passo opcional", async () => {

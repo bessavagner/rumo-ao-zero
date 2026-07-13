@@ -64,7 +64,7 @@
   />
   <FreqBars
     titulo="Substituições (taxa)"
-    itens={(dash?.substituicoes_eficacia ?? []).map(s => ({ label: s.substituicao, valor: Math.round(s.taxa_resolucao * 100) }))}
+    itens={(dash?.substituicoes_eficacia ?? []).map(s => ({ label: s.rotulo, valor: Math.round(s.taxa_resolucao * 100) }))}
   />
 </div>
 
