@@ -71,7 +71,7 @@ The schema is a direct encoding of established behavior-change frameworks — th
 | **Day-0 baseline** with an anchor letter to your future self in crisis | Commitment & motivational interviewing (DARN) |
 | **Pennebaker writing** across the first four days | Expressive-writing protocol |
 | **Hierarchy of Values** — 5 core values and how use erodes them | Values-based motivation (ACT) |
-| **Substitution bank**, ranked by *measured* effectiveness | Competing-response training |
+| **Substitution taxonomy** — 5 fixed coping-response categories, ranked by *measured* effectiveness | Competing-response training |
 | **Craving/slip trigger** — a fixed taxonomy of 18 situations across 8 clinical categories | Marlatt & Gordon's relapse taxonomy (1985), operationalized by Annis' IDS/ISS |
 
 The trigger taxonomy deserves its own note: it's the one place the schema deliberately does
@@ -179,8 +179,8 @@ curl -s -X POST http://127.0.0.1:8000/api/log/daily/ \
 | Daily entries / Pulses | `/api/log/daily/` · `/api/log/pulsos/` |
 | Cravings / Slips | `/api/log/cravings/` · `/api/log/slips/` |
 | Baseline (Day 0) | `/api/baseline/profile/` |
-| Substitutions · Values · If-Then | `/api/baseline/{substitutions,values,ifthen}/` |
-| Trigger / internal-state taxonomy (fixed, read-only) | `/api/taxonomia/{gatilhos,estados}/` |
+| Values · If-Then | `/api/baseline/{values,ifthen}/` |
+| Trigger / internal-state / substitution taxonomy (fixed, read-only) | `/api/taxonomia/{gatilhos,estados,substituicoes}/` |
 | Backlog · Decisions · Consultations · Purchases | `/api/backlog/{items,decisions,consultas,compras}/` |
 | Derived dashboard / Mood series | `/api/dashboard/` · `/api/series/humor/` |
 
@@ -234,7 +234,7 @@ rumo_ao_zero/
 ├── apps/backend/
 │   ├── apps/
 │   │   ├── accounts/      # custom user (multi-user ready)
-│   │   ├── baseline/      # Day-0 snapshot + libraries (triggers, substitutions, values, if-then)
+│   │   ├── baseline/      # Day-0 snapshot + libraries (values, if-then) + fixed taxonomies (triggers, states, substitutions)
 │   │   ├── log/           # daily entries, pulses, cravings, slips + derived metrics
 │   │   └── backlog/       # project items, decisions (ADR), consultations, purchases
 │   ├── config/            # settings, urls, SPA view
