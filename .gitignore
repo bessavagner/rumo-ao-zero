@@ -58,3 +58,8 @@ apps/backend/frontend/dist/
 
 # === Playwright MCP (snapshots/artefatos de verificação local) ===
 .playwright-mcp/
+
+# === Mapas de migração: DERIVADOS DO LOG REAL — texto livre do usuário (craving/slip) ===
+# Nunca versionar: este repo é público. Vivem só no disco e chegam à friday pelo rsync,
+# como .secrets/ e docs/meds/. A migração os lê do disco; o git não precisa vê-los.
+apps/backend/apps/baseline/mapas/*.csv

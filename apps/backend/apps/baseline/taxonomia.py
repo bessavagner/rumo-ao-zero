@@ -140,20 +140,21 @@ REGRAS_GATILHO: list[tuple[str, list[str]]] = [
                           "bati de frente", "bateu de frente"]),
     ("frustracao_trabalho", ["frustracao", "frustrado", "frustrante", "chefe", "reuniao",
                              "deadline", "trabalho", "decepcao", "desvalorizado",
-                             "desvalorizado"]),
+                             "reconhecimento"]),
     ("ansiedade_estresse", ["ansiedade", "ansioso", "estresse", "estressado", "nervoso"]),
     ("tedio_vazio", ["tedio", "entediado", "vazio", "sem nada pra fazer"]),
-    # Ciúmes não tem situação própria: por decisão do Bessa entra em tristeza/solidão (é o
-    # registro de emoção desagradável mais próximo do que ele descreve).
+    # Ciúmes/insegurança não têm situação própria e caem aqui — é a emoção desagradável mais
+    # próxima na lista. Se aparecerem muito, é sinal de que a taxonomia precisa de uma situação.
     ("tristeza_solidao", ["tristeza", "triste", "solidao", "sozinho", "solitario",
-                          "ciumes", "ciume"]),
+                          "ciumes", "ciume", "inseguranca"]),
     ("apos_refeicao", ["apos refeicao", "depois de comer", "depois do almoco", "pos almoco",
                        "almoco", "jantar"]),
     ("cafe_pausa", ["cafe", "pausa", "cafezinho"]),
     ("cansaco_noite_mal_dormida", ["cansaco", "cansado", "exausto", "mal dormida", "nao dormi",
                                    "sono ruim"]),
     ("dor_mal_estar", ["dor de", "dor ", "mal estar", "mal-estar", "doente", "ressaca"]),
-    # Euforia e "produtiv" são gatilhos positivos e caem aqui (reforço positivo, no IDS).
+    # Euforia e "que semana/dia produtivo" são gatilhos positivos e caem aqui (reforço positivo,
+    # no IDS) — o craving que vem do bom momento, não do mau.
     ("comemoracao", ["comemoracao", "comemorar", "comemorando", "boa noticia", "vitoria",
                      "euforia", "euforico", "produtiv"]),
     ("relaxar_recompensa", ["relaxar", "recompensa", "merecia", "me premiar"]),

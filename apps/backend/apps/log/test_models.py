@@ -76,7 +76,7 @@ def test_detalhes_e_opcional_e_guarda_o_texto_livre():
     assert CravingEvent.objects.get(pk=vazio.pk).detalhes == ""
 
     # Com texto: o que o usuário escreveu precisa voltar intacto do banco.
-    texto = "[texto do log — removido do versionamento]"
+    texto = "briga no trabalho, saí pra fumar (acentuação e vírgula precisam sobreviver)"
     com_texto = _craving(user, detalhes=texto)
     com_texto.full_clean()
     com_texto.save()
