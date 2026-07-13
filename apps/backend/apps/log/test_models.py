@@ -81,3 +81,31 @@ def test_detalhes_e_opcional_e_guarda_o_texto_livre():
     com_texto.full_clean()
     com_texto.save()
     assert CravingEvent.objects.get(pk=com_texto.pk).detalhes == texto
+
+
+@pytest.mark.django_db
+def test_substituicao_fora_das_cinco_e_rejeitada():
+    user = User.objects.create_user(username="m", password="x")
+    with pytest.raises(ValidationError) as exc:
+        _craving(user, substituicao="corrida").full_clean()
+    assert "substituicao" in exc.value.message_dict
+
+
+@pytest.mark.django_db
+def test_substituicao_vazia_e_valida_e_significa_nao_registrei():
+    user = User.objects.create_user(username="m", password="x")
+    c = _craving(user, substituicao="")
+    c.full_clean()
+    c.save()
+    assert CravingEvent.objects.get(pk=c.pk).substituicao == ""
+
+
+@pytest.mark.django_db
+def test_substituicao_guarda_categoria_e_o_texto_livre():
+    user = User.objects.create_user(username="m", password="x")
+    c = _craving(user, substituicao="movimento", substituicao_detalhes="corri 5k no fim da tarde")
+    c.full_clean()
+    c.save()
+    salvo = CravingEvent.objects.get(pk=c.pk)
+    assert salvo.substituicao == "movimento"
+    assert salvo.substituicao_detalhes == "corri 5k no fim da tarde"

@@ -3,7 +3,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from apps.baseline.models import Substitution
-from apps.baseline.taxonomia import SITUACOES, categoria_de, valida_estados, valida_situacoes
+from apps.baseline.taxonomia import SITUACOES, SUBSTITUICOES, categoria_de, valida_estados, valida_situacoes
 
 # Escalas subjetivas — unificadas em 0–10 (antes humor/energia/sono_q eram 1–5). Validadas no backend.
 ESCALA_0_10 = [MinValueValidator(0), MaxValueValidator(10)]
@@ -85,7 +85,14 @@ class CravingEvent(models.Model):
     pensamento_balanceado = models.TextField(blank=True)
 
     # Resposta
-    substituicao_usada = models.ForeignKey(Substitution, null=True, blank=True, on_delete=models.SET_NULL)
+    # A substituição é uma das 5 categorias fixas de enfrentamento (taxonomia). O que a pessoa fez
+    # de fato ("corri 5k") vai em `substituicao_detalhes` — preservado, mas não contado. Vazio ("")
+    # significa "nada / não registrei", e é por isso que não existe categoria "outro".
+    substituicao = models.CharField(max_length=16, choices=SUBSTITUICOES, blank=True)
+    substituicao_detalhes = models.TextField(blank=True, help_text="O que fiz, nas minhas palavras.")
+    substituicao_usada = models.ForeignKey(  # legado — sai na migration 0012
+        Substitution, null=True, blank=True, on_delete=models.SET_NULL
+    )
     aprendizado = models.CharField(max_length=255, blank=True)
 
     # If-then gerado a partir deste evento (opcional)
