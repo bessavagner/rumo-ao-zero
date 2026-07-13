@@ -4,7 +4,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
-from apps.baseline.models import BaselineProfile, Substitution
+from apps.baseline.models import BaselineProfile
 from apps.log.models import CravingEvent, DailyEntry, Pulso, Slip
 
 User = get_user_model()

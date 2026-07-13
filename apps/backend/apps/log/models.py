@@ -2,7 +2,6 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from apps.baseline.models import Substitution
 from apps.baseline.taxonomia import SITUACOES, SUBSTITUICOES, categoria_de, valida_estados, valida_situacoes
 
 # Escalas subjetivas — unificadas em 0–10 (antes humor/energia/sono_q eram 1–5). Validadas no backend.
@@ -24,9 +23,6 @@ class DailyEntry(models.Model):
 
     # Estado interno (ex-HALT) — códigos da taxonomia fixa; lista vazia = nenhum estado marcado.
     estados = models.JSONField(default=list, blank=True, validators=[valida_estados])
-
-    # Substituições usadas hoje
-    substituicoes = models.ManyToManyField(Substitution, blank=True)
 
     # Prosa curta (3 linhas + 2 micro-blocos)
     linha_1 = models.CharField(max_length=255, blank=True)
@@ -90,9 +86,6 @@ class CravingEvent(models.Model):
     # significa "nada / não registrei", e é por isso que não existe categoria "outro".
     substituicao = models.CharField(max_length=16, choices=SUBSTITUICOES, blank=True)
     substituicao_detalhes = models.TextField(blank=True, help_text="O que fiz, nas minhas palavras.")
-    substituicao_usada = models.ForeignKey(  # legado — sai na migration 0012
-        Substitution, null=True, blank=True, on_delete=models.SET_NULL
-    )
     aprendizado = models.CharField(max_length=255, blank=True)
 
     # If-then gerado a partir deste evento (opcional)

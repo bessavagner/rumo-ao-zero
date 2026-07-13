@@ -95,3 +95,19 @@ def test_taxonomia_de_substituicoes_e_read_only_e_exige_auth():
     # Não existe caminho que crie substituição — nem aqui.
     resp = client.post("/api/taxonomia/substituicoes/", {"codigo": "novo"}, format="json")
     assert resp.status_code == 405
+
+
+@pytest.mark.django_db
+def test_rota_do_catalogo_de_substituicoes_nao_existe_mais():
+    user = User.objects.create_user(username="tax", password="x")
+    client = APIClient()
+    client.force_authenticate(user=user)
+    assert client.get("/api/baseline/substitutions/").status_code == 404
+
+
+@pytest.mark.django_db
+def test_model_substitution_nao_existe_mais():
+    from django.apps import apps as apps_reais
+
+    nomes = {m.__name__ for m in apps_reais.get_app_config("baseline").get_models()}
+    assert "Substitution" not in nomes

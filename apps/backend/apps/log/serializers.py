@@ -14,9 +14,7 @@ class CravingEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CravingEvent
-        # `substituicao_usada` (FK para o catálogo antigo) ainda existe no banco — só some na
-        # migration destrutiva — mas NÃO pode ser escrito nem lido: a taxonomia é fixa.
-        exclude = ["user", "substituicao_usada"]
+        exclude = ["user"]
 
 
 class SlipSerializer(serializers.ModelSerializer):

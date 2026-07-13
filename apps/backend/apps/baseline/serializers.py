@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import BaselineProfile, IfThenPlan, Substitution, Value
+from .models import BaselineProfile, IfThenPlan, Value
 
 
 class BaselineProfileSerializer(serializers.ModelSerializer):
@@ -12,12 +12,6 @@ class BaselineProfileSerializer(serializers.ModelSerializer):
 class ValueSerializer(serializers.ModelSerializer):
     class Meta:
         model = Value
-        exclude = ["user"]
-
-
-class SubstitutionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Substitution
         exclude = ["user"]
 
 

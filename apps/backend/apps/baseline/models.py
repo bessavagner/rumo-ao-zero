@@ -53,31 +53,6 @@ class Value(models.Model):
         return self.nome
 
 
-class Substitution(models.Model):
-    """Banco de substituições — testadas e marcadas pela eficácia real."""
-
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="substitutions")
-    nome = models.CharField(max_length=128)
-    categoria = models.CharField(
-        max_length=32,
-        choices=[
-            ("oral", "Oral (chá, água, goma)"),
-            ("movimento", "Movimento (caminhar, alongar)"),
-            ("social", "Social (ligar, mensagem)"),
-            ("cognitivo", "Cognitivo (escrever, ler)"),
-            ("ambiental", "Ambiental (mudar ambiente)"),
-        ],
-    )
-    eficacia_media = models.DecimalField(max_digits=3, decimal_places=1, default=0)
-    vezes_usado = models.PositiveIntegerField(default=0)
-    notas = models.TextField(blank=True)
-    ativo = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.nome
-
-
 class IfThenPlan(models.Model):
     """Implementation Intentions (Gollwitzer). "SE <situação> ENTÃO <ação>".
 

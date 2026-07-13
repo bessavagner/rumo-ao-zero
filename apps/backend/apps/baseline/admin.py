@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import BaselineProfile, IfThenPlan, Substitution, Value
+from .models import BaselineProfile, IfThenPlan, Value
 
 
 @admin.register(BaselineProfile)
@@ -12,13 +12,6 @@ class BaselineProfileAdmin(admin.ModelAdmin):
 class ValueAdmin(admin.ModelAdmin):
     list_display = ("user", "ordem", "nome")
     list_filter = ("user",)
-
-
-@admin.register(Substitution)
-class SubstitutionAdmin(admin.ModelAdmin):
-    list_display = ("nome", "user", "categoria", "eficacia_media", "vezes_usado", "ativo")
-    list_filter = ("user", "categoria", "ativo")
-    search_fields = ("nome",)
 
 
 @admin.register(IfThenPlan)

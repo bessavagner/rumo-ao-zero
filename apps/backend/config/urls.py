@@ -17,7 +17,6 @@ from apps.backlog.views import (
 from apps.baseline.views import (
     BaselineProfileViewSet,
     IfThenPlanViewSet,
-    SubstitutionViewSet,
     TaxonomiaEstadosView,
     TaxonomiaGatilhosView,
     TaxonomiaSubstituicoesView,
@@ -35,7 +34,6 @@ router.register("log/pulsos", PulsoViewSet)
 # baseline (Dia 0 + bibliotecas)
 router.register("baseline/profile", BaselineProfileViewSet)
 router.register("baseline/values", ValueViewSet)
-router.register("baseline/substitutions", SubstitutionViewSet)
 router.register("baseline/ifthen", IfThenPlanViewSet)
 # backlog (preenchido pelo assistente)
 router.register("backlog/items", BacklogItemViewSet)

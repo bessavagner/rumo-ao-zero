@@ -12,9 +12,9 @@ class DailyEntryAdmin(admin.ModelAdmin):
 
 @admin.register(CravingEvent)
 class CravingEventAdmin(admin.ModelAdmin):
-    list_display = ("timestamp", "user", "substancia", "intensidade_pico", "gatilho")
-    list_filter = ("user", "substancia", "gatilho", "publicable")
-    search_fields = ("detalhes", "aprendizado")
+    list_display = ("timestamp", "user", "substancia", "intensidade_pico", "gatilho", "substituicao")
+    list_filter = ("user", "substancia", "gatilho", "substituicao", "publicable")
+    search_fields = ("detalhes", "substituicao_detalhes", "aprendizado")
     date_hierarchy = "timestamp"
 
 

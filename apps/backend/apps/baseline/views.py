@@ -6,11 +6,10 @@ from rest_framework.views import APIView
 from apps.common import OwnedModelViewSet
 
 from . import taxonomia
-from .models import BaselineProfile, IfThenPlan, Substitution, Value
+from .models import BaselineProfile, IfThenPlan, Value
 from .serializers import (
     BaselineProfileSerializer,
     IfThenPlanSerializer,
-    SubstitutionSerializer,
     TaxonomiaEstadosSerializer,
     TaxonomiaGatilhosSerializer,
     TaxonomiaSubstituicoesSerializer,
@@ -27,13 +26,6 @@ class ValueViewSet(OwnedModelViewSet):
     queryset = Value.objects.all()
     serializer_class = ValueSerializer
     ordering_fields = ["ordem"]
-
-
-class SubstitutionViewSet(OwnedModelViewSet):
-    queryset = Substitution.objects.all()
-    serializer_class = SubstitutionSerializer
-    filterset_fields = ["categoria", "ativo"]
-    search_fields = ["nome"]
 
 
 class IfThenPlanViewSet(OwnedModelViewSet):

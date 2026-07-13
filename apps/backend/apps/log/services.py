@@ -12,7 +12,6 @@ from datetime import date, timedelta
 
 from django.utils import timezone
 
-from apps.baseline.models import Substitution
 from apps.baseline.taxonomia import categoria_de, rotulo_categoria, rotulo_estado, rotulo_situacao
 
 from .models import CravingEvent, DailyEntry, Slip
@@ -70,6 +69,12 @@ def substituicoes_eficacia(user) -> list[dict]:
     Para cada substituição usada: nº de usos, taxa de resolução (cravings que baixaram para ≤3,
     i.e. com `tempo_para_baixar_3` registrado) e tempo médio até baixar. Ordenado por eficácia.
     """
+    # NOTA (Task 6): `substituicao_usada` e `Substitution` saíram do model nesta task — esta
+    # função ainda referencia o catálogo antigo e vai quebrar em runtime. Conserto é a Task 7
+    # (reescrever para a taxonomia fixa). Import local só para não derrubar o módulo inteiro
+    # (e com ele config/urls.py) por causa de uma função que ninguém mais chama sem quebrar.
+    from apps.baseline.models import Substitution
+
     stats = defaultdict(lambda: {"usos": 0, "resolvidos": 0, "soma_tempo": 0})
     eventos = CravingEvent.objects.filter(
         user=user, substituicao_usada__isnull=False
