@@ -84,6 +84,25 @@ ESTADOS: list[tuple[str, str]] = [
 _ROTULO_ESTADO: dict[str, str] = dict(ESTADOS)
 CODIGOS_ESTADO = frozenset(_ROTULO_ESTADO)
 
+# ── Substituições (estratégias de enfrentamento) ─────────────────────────────
+# As 5 categorias de coping. Os CÓDIGOS são os mesmos que já viviam em
+# `Substitution.categoria` — não podem mudar, a migração de dados lê deles.
+#
+# Os RÓTULOS mudaram: os antigos ("Movimento (caminhar, alongar)") eram parênteses escritos como
+# definição e lidos como MENU FECHADO — o usuário resolveu um craving com uma corrida e não soube
+# onde encaixá-la, sendo que `movimento` sempre foi a resposta. Os novos dizem que cabe.
+#
+# Não existe "outro": o campo é opcional, e vazio ("") já significa "nada / não registrei".
+SUBSTITUICOES: list[tuple[str, str]] = [
+    ("oral", "Oral — chá, água, goma, comer algo"),
+    ("movimento", "Movimento — andar, correr, alongar, qualquer coisa com o corpo"),
+    ("social", "Social — ligar, mandar mensagem, ficar perto de alguém"),
+    ("cognitivo", "Cognitivo — escrever, ler, respirar, esperar a onda passar"),
+    ("ambiental", "Ambiental — mudar de ambiente, sair da situação"),
+]
+_ROTULO_SUBSTITUICAO: dict[str, str] = dict(SUBSTITUICOES)
+CODIGOS_SUBSTITUICAO = frozenset(_ROTULO_SUBSTITUICAO)
+
 
 # ── Derivação ────────────────────────────────────────────────────────────────
 def categoria_de(situacao: str | None) -> str | None:
@@ -103,6 +122,10 @@ def rotulo_estado(codigo: str) -> str:
     return _ROTULO_ESTADO.get(codigo, codigo)
 
 
+def rotulo_substituicao(codigo: str) -> str:
+    return _ROTULO_SUBSTITUICAO.get(codigo, codigo)
+
+
 def grupos_gatilhos() -> dict:
     """Payload de `GET /api/taxonomia/gatilhos/` — pronto para virar <optgroup> no front."""
     grupos = []
@@ -118,6 +141,11 @@ def grupos_gatilhos() -> dict:
 def lista_estados() -> list[dict]:
     """Payload de `GET /api/taxonomia/estados/`."""
     return [{"codigo": c, "rotulo": r} for c, r in ESTADOS]
+
+
+def lista_substituicoes() -> list[dict]:
+    """Payload de `GET /api/taxonomia/substituicoes/`."""
+    return [{"codigo": c, "rotulo": r} for c, r in SUBSTITUICOES]
 
 
 # ── Normalização e classificação por palavra-chave ───────────────────────────

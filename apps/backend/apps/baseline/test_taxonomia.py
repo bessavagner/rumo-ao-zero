@@ -75,3 +75,38 @@ def test_outro_existe_nos_dois_namespaces_e_isso_e_de_proposito():
     # Situação e estado são namespaces independentes: cada um tem sua válvula de escape.
     assert "outro" in tx.CODIGOS_SITUACAO
     assert "outro" in tx.CODIGOS_ESTADO
+
+
+def test_cinco_substituicoes_com_os_codigos_que_ja_existiam_no_banco():
+    # Os códigos precisam bater com os de Substitution.categoria — a migração lê deles.
+    assert [c for c, _ in tx.SUBSTITUICOES] == [
+        "oral", "movimento", "social", "cognitivo", "ambiental"
+    ]
+    assert tx.CODIGOS_SUBSTITUICAO == {"oral", "movimento", "social", "cognitivo", "ambiental"}
+
+
+def test_rotulos_das_substituicoes_nao_sao_listas_fechadas():
+    """O bug real: o rótulo "Movimento (caminhar, alongar)" era lido como menu fechado, e uma
+    corrida parecia não caber. O rótulo novo diz explicitamente que cabe."""
+    movimento = tx.rotulo_substituicao("movimento")
+    assert "correr" in movimento
+    assert "qualquer coisa com o corpo" in movimento
+    # Respirar e "surfar a onda" ganham casa explícita em cognitivo.
+    cognitivo = tx.rotulo_substituicao("cognitivo")
+    assert "respirar" in cognitivo
+    assert "esperar a onda passar" in cognitivo
+
+
+def test_rotulo_substituicao_devolve_o_proprio_codigo_se_desconhecido():
+    assert tx.rotulo_substituicao("inexistente") == "inexistente"
+
+
+def test_lista_substituicoes_e_o_payload_da_api():
+    itens = tx.lista_substituicoes()
+    assert len(itens) == 5
+    assert itens[1] == {"codigo": "movimento", "rotulo": tx.rotulo_substituicao("movimento")}
+
+
+def test_nao_existe_outro_em_substituicoes():
+    # Diferente do gatilho: o campo é opcional, e vazio ("") já significa "não registrei".
+    assert "outro" not in tx.CODIGOS_SUBSTITUICAO
