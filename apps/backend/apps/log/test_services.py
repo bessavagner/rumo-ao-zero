@@ -72,26 +72,44 @@ def test_data_zero_no_futuro_zera_streak_e_economia():
 
 
 @pytest.mark.django_db
-def test_substituicoes_eficacia():
-    from apps.baseline.models import Substitution
+def test_substituicoes_eficacia_agrupa_por_categoria():
+    """Regressão do bug do catálogo: 'dog walking' e 'passear com o cachorro' eram duas linhas
+    dividindo a mesma estatística. Agora as duas são `movimento`, e viram UMA linha com usos=2."""
     from apps.log.models import CravingEvent
 
     user = _user_com_baseline("sub", 30)
-    s = Substitution.objects.create(user=user, nome="Caminhada", categoria="movimento")
     CravingEvent.objects.create(
-        user=user, timestamp=timezone.now(), substancia="tabaco",
-        intensidade_pico=8, gatilho="tedio_vazio", substituicao_usada=s,
-        tempo_para_baixar_3=20,
+        user=user, timestamp=timezone.now(), substancia="tabaco", intensidade_pico=8,
+        gatilho="tedio_vazio", substituicao="movimento",
+        substituicao_detalhes="dog walking", tempo_para_baixar_3=20,
     )
     CravingEvent.objects.create(
-        user=user, timestamp=timezone.now(), substancia="tabaco",
-        intensidade_pico=6, gatilho="tedio_vazio", substituicao_usada=s,
+        user=user, timestamp=timezone.now(), substancia="tabaco", intensidade_pico=6,
+        gatilho="tedio_vazio", substituicao="movimento",
+        substituicao_detalhes="passear com o cachorro",
     )
+
     r = substituicoes_eficacia(user)
-    assert r[0]["substituicao"] == "Caminhada"
+
+    assert len(r) == 1
+    assert r[0]["substituicao"] == "movimento"
+    assert "correr" in r[0]["rotulo"]
     assert r[0]["usos"] == 2
-    assert r[0]["taxa_resolucao"] == 0.5
+    assert r[0]["taxa_resolucao"] == 0.5   # só um dos dois baixou para ≤3
     assert r[0]["tempo_medio_min"] == 20.0
+
+
+@pytest.mark.django_db
+def test_craving_sem_substituicao_nao_entra_no_card():
+    from apps.log.models import CravingEvent
+
+    user = _user_com_baseline("sub2", 30)
+    CravingEvent.objects.create(
+        user=user, timestamp=timezone.now(), substancia="tabaco", intensidade_pico=7,
+        gatilho="tedio_vazio", substituicao="",
+    )
+
+    assert substituicoes_eficacia(user) == []
 
 
 @pytest.mark.django_db

@@ -12,7 +12,13 @@ from datetime import date, timedelta
 
 from django.utils import timezone
 
-from apps.baseline.taxonomia import categoria_de, rotulo_categoria, rotulo_estado, rotulo_situacao
+from apps.baseline.taxonomia import (
+    categoria_de,
+    rotulo_categoria,
+    rotulo_estado,
+    rotulo_situacao,
+    rotulo_substituicao,
+)
 
 from .models import CravingEvent, DailyEntry, Slip
 
@@ -64,34 +70,36 @@ def dinheiro_economizado(user) -> float:
 
 
 def substituicoes_eficacia(user) -> list[dict]:
-    """Eficácia REAL das substituições, calculada dos CravingEvent (não dos campos denormalizados).
+    """Eficácia REAL das substituições, derivada dos CravingEvent (nunca de campos denormalizados).
 
-    Para cada substituição usada: nº de usos, taxa de resolução (cravings que baixaram para ≤3,
-    i.e. com `tempo_para_baixar_3` registrado) e tempo médio até baixar. Ordenado por eficácia.
+    Agrupa pelas 5 CATEGORIAS fixas, não pelo nome do que a pessoa escreveu: senão "dog walking" e
+    "passear com o cachorro" viram duas linhas dividindo a mesma estatística — a mesma doença que
+    os gatilhos tinham. O texto do que ela fez fica em `substituicao_detalhes`, preservado mas não
+    contado.
+
+    Para cada categoria: nº de usos, taxa de resolução (cravings que baixaram para ≤3, i.e. com
+    `tempo_para_baixar_3` registrado) e tempo médio até baixar. Ordenado por eficácia.
+    Craving sem substituição (`""`) não entra: não houve o que medir.
     """
-    # NOTA (Task 6): `substituicao_usada` e `Substitution` saíram do model nesta task — esta
-    # função ainda referencia o catálogo antigo e vai quebrar em runtime. Conserto é a Task 7
-    # (reescrever para a taxonomia fixa). Import local só para não derrubar o módulo inteiro
-    # (e com ele config/urls.py) por causa de uma função que ninguém mais chama sem quebrar.
-    from apps.baseline.models import Substitution
-
     stats = defaultdict(lambda: {"usos": 0, "resolvidos": 0, "soma_tempo": 0})
-    eventos = CravingEvent.objects.filter(
-        user=user, substituicao_usada__isnull=False
-    ).values("substituicao_usada", "tempo_para_baixar_3")
+    eventos = (
+        CravingEvent.objects.filter(user=user)
+        .exclude(substituicao="")
+        .values("substituicao", "tempo_para_baixar_3")
+    )
     for ev in eventos:
-        s = stats[ev["substituicao_usada"]]
+        s = stats[ev["substituicao"]]
         s["usos"] += 1
         if ev["tempo_para_baixar_3"] is not None:
             s["resolvidos"] += 1
             s["soma_tempo"] += ev["tempo_para_baixar_3"]
-    nomes = dict(Substitution.objects.filter(user=user).values_list("id", "nome"))
     resultado = []
-    for sid, s in stats.items():
+    for codigo, s in stats.items():
         taxa = s["resolvidos"] / s["usos"] if s["usos"] else 0
         tempo_medio = s["soma_tempo"] / s["resolvidos"] if s["resolvidos"] else None
         resultado.append({
-            "substituicao": nomes.get(sid, f"#{sid}"),
+            "substituicao": codigo,
+            "rotulo": rotulo_substituicao(codigo),
             "usos": s["usos"],
             "taxa_resolucao": round(taxa, 2),
             "tempo_medio_min": round(tempo_medio, 1) if tempo_medio is not None else None,
