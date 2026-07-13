@@ -206,3 +206,58 @@ class TestMigracoesReais:
 
         assert list(apps_0008.get_model("log", "CravingEvent").objects.all()) == []
         assert list(apps_0008.get_model("log", "Slip").objects.all()) == []
+
+
+# ── `migrar_substituicoes` (0011) ───────────────────────────────────────────────────────────
+#
+# Diferente da migração de gatilhos, não há mapa nem revisão humana: `Substitution.categoria`
+# já é um campo com choices — a classificação já está feita, a migração só a lê. O `nome` do
+# catálogo ("dog walking") vai para `substituicao_detalhes`: o texto do usuário nunca se perde.
+
+
+@pytest.mark.django_db
+def test_substituicao_vira_categoria_e_preserva_o_nome():
+    """O nome do catálogo ('dog walking') nunca se perde — vai para substituicao_detalhes."""
+    from django.apps import apps as apps_reais
+    from django.contrib.auth import get_user_model
+    from django.utils import timezone
+
+    from apps.baseline.models import Substitution
+    from apps.log.migrations import _0011_helpers as helpers
+    from apps.log.models import CravingEvent
+
+    user = get_user_model().objects.create_user(username="mig-sub", password="x")
+    caminhada = Substitution.objects.create(user=user, nome="dog walking", categoria="movimento")
+    CravingEvent.objects.create(
+        user=user, timestamp=timezone.now(), substancia="tabaco", intensidade_pico=8,
+        gatilho="tedio_vazio", substituicao_usada=caminhada, tempo_para_baixar_3=15,
+    )
+    # Craving sem substituição: não pode ganhar categoria nenhuma.
+    CravingEvent.objects.create(
+        user=user, timestamp=timezone.now(), substancia="tabaco", intensidade_pico=6,
+        gatilho="cafe_pausa",
+    )
+
+    helpers.migrar_substituicoes(apps_reais, None)
+
+    com = CravingEvent.objects.get(intensidade_pico=8)
+    assert com.substituicao == "movimento"
+    assert com.substituicao_detalhes == "dog walking"
+    sem = CravingEvent.objects.get(intensidade_pico=6)
+    assert sem.substituicao == ""
+    assert sem.substituicao_detalhes == ""
+
+
+@pytest.mark.django_db
+def test_migracao_de_substituicao_e_no_op_em_banco_vazio():
+    """DESVIO APROVADO: o brief original só checava 'não levanta'. Aqui afirmamos o estado
+    concreto — banco sem nenhum Substitution e sem nenhum craving com FK não pode fazer NENHUM
+    CravingEvent ganhar categoria."""
+    from django.apps import apps as apps_reais
+
+    from apps.log.migrations import _0011_helpers as helpers
+    from apps.log.models import CravingEvent
+
+    helpers.migrar_substituicoes(apps_reais, None)  # não levanta
+
+    assert CravingEvent.objects.exclude(substituicao="").count() == 0
