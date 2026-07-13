@@ -97,6 +97,26 @@ describe("CravingForm", () => {
     expect(corpo.substituicao_usada).toBeUndefined();
   });
 
+  it("posta o gatilho principal, adicionais e tempo para baixar 3", async () => {
+    render(CravingForm, { onDone: () => {} });
+    await screen.findByRole("option", { name: "Fim de expediente" });
+
+    await fireEvent.change(screen.getByLabelText("Gatilho principal"), {
+      target: { value: "fim_expediente" },
+    });
+    await fireEvent.click(screen.getByLabelText("Bebendo (gatilho cruzado)"));
+    await fireEvent.input(screen.getByLabelText("Minutos até baixar para 3"), {
+      target: { value: "18" },
+    });
+    await fireEvent.click(screen.getByRole("button", { name: "Salvar craving" }));
+
+    expect(post).toHaveBeenCalledTimes(1);
+    const [, corpo] = post.mock.calls[0];
+    expect(corpo.gatilho).toBe("fim_expediente");
+    expect(corpo.gatilhos_adicionais).toEqual(["bebendo"]);
+    expect(corpo.tempo_para_baixar_3).toBe(18);
+  });
+
   it("depois de salvar, oferece o thought record como passo opcional", async () => {
     const onDone = vi.fn();
     render(CravingForm, { onDone });
