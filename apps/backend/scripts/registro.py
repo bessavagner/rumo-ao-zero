@@ -15,7 +15,7 @@ Exemplos:
 
     python3 registro.py craving --data 2026-06-15 --hora 17:10 --substancia tabaco \\
         --intensidade-pico 8 --gatilho tedio_vazio --detalhes "tarde sozinho, estresse" \\
-        --estado solidao --estado cansaco --fiz "andar 15 min" --fiz-categoria movimento \\
+        --estado solidao --estado cansaco --substituicao movimento --substituicao-detalhes "corri 5k" \\
         --tempo-baixar-3 18 --aprendizado "o gatilho é o tédio das 17h"
 
     python3 registro.py slip --data 2026-06-20 --hora 21:30 --substancia alcool \\
@@ -41,14 +41,12 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from registro_core import (  # noqa: E402
-    SUBSTITUICAO_CATEGORIAS,
     Api,
     RegistroError,
     registrar_craving,
     registrar_diario,
     registrar_pulso,
     registrar_slip,
-    resolve_substituicao,
     taxonomia,
 )
 
@@ -73,7 +71,8 @@ def cmd_craving(api: Api, a: argparse.Namespace) -> None:
         api, data=a.data, hora=a.hora, substancia=a.substancia,
         intensidade_pico=a.intensidade_pico, gatilho=a.gatilho,
         gatilhos_adicionais=a.gatilho_adicional, detalhes=a.detalhes, estados=a.estado,
-        fiz=a.fiz, fiz_categoria=a.fiz_categoria, duracao_min=a.duracao_min,
+        substituicao=a.substituicao, substituicao_detalhes=a.substituicao_detalhes,
+        duracao_min=a.duracao_min,
         intensidade_final=a.intensidade_final, tempo_baixar_3=a.tempo_baixar_3,
         aprendizado=a.aprendizado,
     ))
@@ -93,11 +92,6 @@ def cmd_pulso(api: Api, a: argparse.Namespace) -> None:
         api, data=a.data, hora=a.hora, humor=a.humor, energia=a.energia,
         craving=a.craving, estados=a.estado, nota=a.nota,
     ))
-
-
-def cmd_sub_upsert(api: Api, a: argparse.Namespace) -> None:
-    sid, novo = resolve_substituicao(api, a.nome, a.categoria)
-    emit_ok({"tipo": "SUBSTITUICAO", "id": sid, "criado": novo, "nome": a.nome})
 
 
 def cmd_taxonomia(api: Api, a: argparse.Namespace) -> None:
@@ -134,9 +128,10 @@ def build_parser() -> argparse.ArgumentParser:
                    help="código de situação adicional (repetível)")
     c.add_argument("--detalhes", help="a fala inteira, em texto livre")
     c.add_argument("--estado", action="append", help="código de estado interno (repetível)")
-    c.add_argument("--fiz", help="o que fez (vira Substitution)")
-    c.add_argument("--fiz-categoria", dest="fiz_categoria", choices=SUBSTITUICAO_CATEGORIAS,
-                   help="categoria da substituição (se nova)")
+    c.add_argument("--substituicao", choices=["oral", "movimento", "social", "cognitivo", "ambiental"],
+                   help="código da substituição usada (ver: registro.py taxonomia)")
+    c.add_argument("--substituicao-detalhes", dest="substituicao_detalhes",
+                   help="a fala inteira do que fez, em texto livre")
     c.add_argument("--duracao-min", dest="duracao_min", type=int, default=None)
     c.add_argument("--intensidade-final", dest="intensidade_final", type=int, default=None, help="0–10")
     c.add_argument("--tempo-baixar-3", dest="tempo_baixar_3", type=int, default=None, help="min até ≤3")
@@ -168,12 +163,7 @@ def build_parser() -> argparse.ArgumentParser:
     pu.add_argument("--nota", help="observação curta do momento")
     pu.set_defaults(func=cmd_pulso)
 
-    su = sub.add_parser("sub-upsert", help="get-or-create Substitution por nome")
-    su.add_argument("--nome", required=True)
-    su.add_argument("--categoria", choices=SUBSTITUICAO_CATEGORIAS)
-    su.set_defaults(func=cmd_sub_upsert)
-
-    sub.add_parser("taxonomia", help="lista os códigos válidos de gatilho/estado").set_defaults(
+    sub.add_parser("taxonomia", help="lista os códigos válidos de gatilho/estado/substituição").set_defaults(
         func=cmd_taxonomia
     )
 

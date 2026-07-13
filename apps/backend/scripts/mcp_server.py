@@ -103,7 +103,8 @@ def registrar_diario(
 def registrar_craving(
     data: str, hora: str, substancia: str, intensidade_pico: int, gatilho: str,
     gatilhos_adicionais: list[str] | None = None, detalhes: str | None = None,
-    estados: list[str] | None = None, fiz: str | None = None, fiz_categoria: str | None = None,
+    estados: list[str] | None = None, substituicao: str | None = None,
+    substituicao_detalhes: str | None = None,
     duracao_min: int | None = None, intensidade_final: int | None = None,
     tempo_baixar_3: int | None = None, aprendizado: str | None = None,
 ) -> dict:
@@ -112,14 +113,14 @@ def registrar_craving(
     substancia: 'alcool' | 'tabaco' | 'ambos'. intensidade_pico: 0–10.
     gatilho: CÓDIGO da taxonomia (tool `taxonomia`). gatilhos_adicionais: outros códigos, se
     houver mais de uma situação. detalhes: a fala do Bessa, inteira. estados: lista de CÓDIGOS.
-    fiz: vira/liga uma Substitution (se NOVA, exige fiz_categoria ∈
-    oral/movimento/social/cognitivo/ambiental).
+    substituicao: CÓDIGO de uma das 5 categorias (tool `taxonomia`). substituicao_detalhes: o
+    que o Bessa disse que fez, na fala dele.
     """
     try:
         return {"ok": True, **core.registrar_craving(
             _api(), data=data, hora=hora, substancia=substancia, intensidade_pico=intensidade_pico,
             gatilho=gatilho, gatilhos_adicionais=gatilhos_adicionais, detalhes=detalhes,
-            estados=estados, fiz=fiz, fiz_categoria=fiz_categoria,
+            estados=estados, substituicao=substituicao, substituicao_detalhes=substituicao_detalhes,
             duracao_min=duracao_min, intensidade_final=intensidade_final,
             tempo_baixar_3=tempo_baixar_3, aprendizado=aprendizado)}
     except Exception as exc:  # noqa: BLE001
@@ -167,7 +168,7 @@ def taxonomia() -> dict:
 
 _RECURSOS_LOG = {"daily", "cravings", "slips", "pulsos"}
 _RECURSOS_OUTROS = {
-    "baseline/profile", "baseline/values", "baseline/substitutions", "baseline/ifthen",
+    "baseline/profile", "baseline/values", "baseline/ifthen",
     "backlog/items", "backlog/decisions", "backlog/consultas", "backlog/compras",
 }
 
@@ -179,7 +180,7 @@ def _path_recurso(recurso: str) -> str:
     if r not in {f"log/{x}" for x in _RECURSOS_LOG} and r not in _RECURSOS_OUTROS:
         raise RegistroError(
             f"recurso desconhecido '{recurso}'. Use ex.: pulsos, cravings, daily, slips, "
-            "baseline/substitutions, backlog/items"
+            "baseline/ifthen, backlog/items"
         )
     return f"/api/{r}/"
 
@@ -188,7 +189,7 @@ def _path_recurso(recurso: str) -> str:
 def consultar(recurso: str, filtros: dict | None = None) -> dict:
     """Consulta (GET) registros já gravados — para responder 'quantos cravings essa semana?' etc.
 
-    recurso: ex. 'pulsos', 'cravings', 'daily', 'slips', 'baseline/substitutions', 'backlog/items'.
+    recurso: ex. 'pulsos', 'cravings', 'daily', 'slips', 'baseline/ifthen', 'backlog/items'.
     filtros: querystring, ex. {'ordering': '-timestamp', 'substancia': 'alcool', 'page': 1}.
     Resposta paginada: {count, next, previous, results}.
     """

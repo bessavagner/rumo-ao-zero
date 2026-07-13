@@ -25,6 +25,12 @@ class ApiFake:
                 "sem_categoria": [{"codigo": "outro", "rotulo": "Outro"}],
             },
             "/api/taxonomia/estados/": {"estados": [{"codigo": "raiva", "rotulo": "Raiva"}]},
+            "/api/taxonomia/substituicoes/": {
+                "substituicoes": [
+                    {"codigo": "movimento",
+                     "rotulo": "Movimento — andar, correr, alongar, qualquer coisa com o corpo"},
+                ]
+            },
         }
 
     def get(self, path):
@@ -71,4 +77,28 @@ def test_registrar_craving_exige_o_gatilho():
 
 def test_nao_existe_mais_caminho_de_criacao_de_gatilho():
     for sumiu in ("resolve_trigger", "buscar_trigger", "editar_gatilho", "resolve_estado"):
+        assert not hasattr(core, sumiu), f"{sumiu} ainda existe — a porta continua aberta"
+
+
+def test_taxonomia_traz_as_substituicoes():
+    api = ApiFake()
+    t = core.taxonomia(api)
+    assert {"codigo": "movimento",
+            "rotulo": "Movimento — andar, correr, alongar, qualquer coisa com o corpo"} in t["substituicoes"]
+
+
+def test_registrar_craving_manda_categoria_e_a_fala_em_detalhes():
+    api = ApiFake()
+    core.registrar_craving(
+        api, data="2026-07-13", hora="18:30", substancia="tabaco", intensidade_pico=8,
+        gatilho="tedio_vazio", substituicao="movimento", substituicao_detalhes="fui correr",
+    )
+    _, corpo = api.posts[0]
+    assert corpo["substituicao"] == "movimento"
+    assert corpo["substituicao_detalhes"] == "fui correr"
+    assert "substituicao_usada" not in corpo and "fiz" not in corpo
+
+
+def test_nao_existe_mais_get_or_create_de_substituicao():
+    for sumiu in ("resolve_substituicao", "resolve_by_name", "SUBSTITUICAO_CATEGORIAS"):
         assert not hasattr(core, sumiu), f"{sumiu} ainda existe — a porta continua aberta"

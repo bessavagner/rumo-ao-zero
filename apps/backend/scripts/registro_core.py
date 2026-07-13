@@ -1,8 +1,8 @@
 """Núcleo compartilhado de registro — usado pelo CLI (registro.py) E pelo servidor MCP (mcp_server.py).
 
-Fonte única da verdade pra: auth na API, resolução de nome -> ID (get-or-create de substituição;
-gatilho e estado são taxonomia FIXA — o assistente manda o código, ver `taxonomia()`), parsing de
-data/hora e construção+POST dos registros DIÁRIO/CRAVING/SLIP/PULSO. Stdlib-only (urllib), pra
+Fonte única da verdade pra: auth na API, parsing de data/hora e construção+POST dos registros
+DIÁRIO/CRAVING/SLIP/PULSO. Gatilho, estado e substituição são taxonomia FIXA — o assistente manda
+o código, ver `taxonomia()`; não há get-or-create de catálogo nenhum. Stdlib-only (urllib), pra
 rodar tanto no CLI (python do sistema) quanto no venv MCP.
 
 As funções `registrar_*` RETORNAM um dict e LEVANTAM `RegistroError` em falha (campo faltando,
@@ -21,7 +21,6 @@ from datetime import date
 from pathlib import Path
 
 ENV_PATH = Path(__file__).resolve().parent.parent / ".secrets" / "dev.env"
-SUBSTITUICAO_CATEGORIAS = ["oral", "movimento", "social", "cognitivo", "ambiental"]
 
 
 class RegistroError(Exception):
@@ -108,40 +107,6 @@ class Api:
         return self.request("DELETE", path)
 
 
-# ----------------------------------------------------------------- resolução de nomes
-
-def _results(payload) -> list:
-    if isinstance(payload, dict):
-        return payload.get("results", [])
-    return payload
-
-
-def resolve_by_name(api: Api, endpoint: str, nome: str, create_payload: dict) -> tuple[int, bool]:
-    """Get-or-create por ``nome`` (case-insensitive). Retorna (id, criado?)."""
-    nome = nome.strip()
-    query = urllib.parse.urlencode({"search": nome})
-    for item in _results(api.get(f"{endpoint}?{query}")):
-        if str(item.get("nome", "")).strip().lower() == nome.lower():
-            return item["id"], False
-    created = api.post(endpoint, create_payload)
-    return created["id"], True
-
-
-def resolve_substituicao(api: Api, nome: str, categoria: str | None) -> tuple[int, bool]:
-    query = urllib.parse.urlencode({"search": nome.strip()})
-    for item in _results(api.get(f"/api/baseline/substitutions/?{query}")):
-        if str(item.get("nome", "")).strip().lower() == nome.strip().lower():
-            return item["id"], False
-    if not categoria:
-        raise RegistroError(
-            f"substituição '{nome}' é nova; informe a categoria ({'/'.join(SUBSTITUICAO_CATEGORIAS)})"
-        )
-    if categoria not in SUBSTITUICAO_CATEGORIAS:
-        raise RegistroError(f"categoria inválida '{categoria}'", detalhe={"opcoes": SUBSTITUICAO_CATEGORIAS})
-    created = api.post("/api/baseline/substitutions/", {"nome": nome.strip(), "categoria": categoria})
-    return created["id"], True
-
-
 # --------------------------------------------------------------------------- datas
 
 def to_iso_date(value: str) -> str:
@@ -180,7 +145,11 @@ def taxonomia(api: Api) -> dict:
         {"codigo": s["codigo"], "rotulo": s["rotulo"], "categoria": None}
         for s in gatilhos["sem_categoria"]
     ]
-    return {"situacoes": situacoes, "estados": api.get("/api/taxonomia/estados/")["estados"]}
+    return {
+        "situacoes": situacoes,
+        "estados": api.get("/api/taxonomia/estados/")["estados"],
+        "substituicoes": api.get("/api/taxonomia/substituicoes/")["substituicoes"],
+    }
 
 
 # ------------------------------------------------------------------- operações de registro
@@ -221,12 +190,15 @@ def registrar_diario(
 
 def registrar_craving(
     api: Api, *, data, hora, substancia, intensidade_pico, gatilho,
-    gatilhos_adicionais=None, detalhes=None, estados=None, fiz=None, fiz_categoria=None,
+    gatilhos_adicionais=None, detalhes=None, estados=None, substituicao=None, substituicao_detalhes=None,
     duracao_min=None, intensidade_final=None, tempo_baixar_3=None, aprendizado=None,
 ) -> dict:
     """`gatilho` é um CÓDIGO da taxonomia (ver `taxonomia()`), não texto livre.
 
     A fala inteira do Bessa vai para `detalhes` — o texto nunca se perde, e o mapa não vira lixo.
+    `substituicao` também é um CÓDIGO fixo (uma das 5 categorias, ver `taxonomia()`);
+    `substituicao_detalhes` guarda a fala inteira do que ele fez. Não há get-or-create: código
+    fora da lista dá 400. Se ele não fez nada, `substituicao` fica vazio.
     """
     if not gatilho:
         raise RegistroError("craving exige 'gatilho' (código da taxonomia; veja a tool taxonomia)")
@@ -249,14 +221,12 @@ def registrar_craving(
             payload[field] = val
     if aprendizado:
         payload["aprendizado"] = aprendizado
-    criados: list[str] = []
-    if fiz:
-        sid, novo = resolve_substituicao(api, fiz, fiz_categoria)
-        payload["substituicao_usada"] = sid
-        if novo:
-            criados.append(f"substituicao:{fiz}")
+    if substituicao:
+        payload["substituicao"] = substituicao
+    if substituicao_detalhes:
+        payload["substituicao_detalhes"] = substituicao_detalhes
     created = api.post("/api/log/cravings/", payload)
-    return {"tipo": "CRAVING", "id": created["id"], "timestamp": created["timestamp"], "criados": criados}
+    return {"tipo": "CRAVING", "id": created["id"], "timestamp": created["timestamp"], "criados": []}
 
 
 def registrar_slip(
