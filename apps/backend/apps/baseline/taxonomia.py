@@ -1,15 +1,15 @@
-"""Taxonomia fixa de gatilhos e estados internos — fonte única de verdade.
+"""Taxonomia fixa de gatilhos, estados internos e substituições — fonte única de verdade.
 
-As 8 categorias são a taxonomia de recaída de Marlatt & Gordon (1985), operacionalizada por
-Annis no IDS (álcool) e no ISS (tabaco) — os mesmos 8 fatores servem as duas substâncias, que
-é exatamente o caso deste projeto (cessação simultânea).
+As 8 categorias de gatilho são a taxonomia de recaída de Marlatt & Gordon (1985),
+operacionalizada por Annis no IDS (álcool) e no ISS (tabaco) — os mesmos 8 fatores servem as
+duas substâncias, que é exatamente o caso deste projeto (cessação simultânea).
 
 A **situação** é o que o usuário escolhe (concreta, na linguagem dele). A **categoria** é
 derivada por dicionário e NUNCA é armazenada — assim não pode divergir. Não existe caminho de
 código que crie uma situação nova: mudar a lista é mudar este arquivo.
 
-Importado por: models (choices + validators), API da taxonomia, services (agregação),
-comando `mapear_gatilhos` e data migrations.
+Importado por: models (choices + validators), API da taxonomia (incluindo substituições),
+services (agregação), comando `mapear_gatilhos` e data migrations.
 """
 
 from __future__ import annotations
@@ -102,7 +102,6 @@ SUBSTITUICOES: list[tuple[str, str]] = [
 ]
 _ROTULO_SUBSTITUICAO: dict[str, str] = dict(SUBSTITUICOES)
 CODIGOS_SUBSTITUICAO = frozenset(_ROTULO_SUBSTITUICAO)
-
 
 # ── Derivação ────────────────────────────────────────────────────────────────
 def categoria_de(situacao: str | None) -> str | None:

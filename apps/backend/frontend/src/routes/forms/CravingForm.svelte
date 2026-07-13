@@ -4,8 +4,8 @@
   import { toast } from "../../lib/toast.svelte";
   import ConfirmDialog from "../../lib/ConfirmDialog.svelte";
   import GatilhoPicker from "../../lib/GatilhoPicker.svelte";
-  import { carregarEstados, carregarGatilhos, carregarSubstituicoes } from "../../lib/taxonomia.svelte";
-  import type { Item, Taxonomia } from "../../lib/taxonomia.svelte";
+  import { carregarEstados, carregarSubstituicoes } from "../../lib/taxonomia.svelte";
+  import type { Item } from "../../lib/taxonomia.svelte";
   import type { CravingInput, CravingEvent, Substancia3 } from "../../lib/types";
 
   let { onDone, registro }: { onDone: () => void; registro?: CravingEvent } = $props();

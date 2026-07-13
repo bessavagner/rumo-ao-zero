@@ -3,7 +3,9 @@
 Princípios:
 - Framework §4.4: slip NÃO zera o cumulativo — é dado, não falência.
 - Métricas são **derivadas dos eventos**, não de campos denormalizados, para nunca ficarem
-  desatualizadas (ex.: eficácia de substituição vem dos CravingEvent, não de Substitution.eficacia_media).
+  desatualizadas (ex.: eficácia de substituição vem de agregar `CravingEvent`, nunca de um
+  contador guardado à parte — o catálogo antigo tinha contadores assim, e eram mentira; morreram
+  com ele).
 - Data Zero pode estar no futuro (pré-Dia 1): nesse caso streak/economia retornam 0.
 """
 
