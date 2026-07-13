@@ -225,3 +225,83 @@ def test_escalas_rejeitam_fora_da_faixa():
     assert abaixo.status_code == 400, abaixo.content
     assert craving_alto.status_code == 400, craving_alto.content
     assert Pulso.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_craving_grava_substituicao_por_categoria_e_detalhes():
+    from apps.log.models import CravingEvent
+
+    user = User.objects.create_user(username="api", password="x")
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    resp = client.post(
+        "/api/log/cravings/",
+        {"timestamp": "2026-07-13T18:00", "substancia": "tabaco", "intensidade_pico": 8,
+         "gatilho": "tedio_vazio",
+         "substituicao": "movimento", "substituicao_detalhes": "fui correr 5k",
+         "tempo_para_baixar_3": 12},
+        format="json",
+    )
+
+    assert resp.status_code == 201, resp.content
+    c = CravingEvent.objects.get()
+    assert c.substituicao == "movimento"
+    assert c.substituicao_detalhes == "fui correr 5k"
+
+
+@pytest.mark.django_db
+def test_craving_rejeita_substituicao_fora_das_cinco():
+    from apps.log.models import CravingEvent
+
+    user = User.objects.create_user(username="api", password="x")
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    resp = client.post(
+        "/api/log/cravings/",
+        {"timestamp": "2026-07-13T18:00", "substancia": "tabaco", "intensidade_pico": 8,
+         "gatilho": "tedio_vazio", "substituicao": "corrida"},
+        format="json",
+    )
+
+    assert resp.status_code == 400, resp.content
+    assert "substituicao" in resp.json()
+    assert CravingEvent.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_craving_sem_substituicao_continua_valido():
+    from apps.log.models import CravingEvent
+
+    user = User.objects.create_user(username="api", password="x")
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    resp = client.post(
+        "/api/log/cravings/",
+        {"timestamp": "2026-07-13T18:00", "substancia": "tabaco",
+         "intensidade_pico": 8, "gatilho": "tedio_vazio"},
+        format="json",
+    )
+
+    assert resp.status_code == 201, resp.content
+    assert CravingEvent.objects.get().substituicao == ""
+
+
+@pytest.mark.django_db
+def test_api_nao_expoe_mais_o_catalogo_de_substituicao():
+    """Não pode existir caminho que crie substituição: o FK sai do payload."""
+    user = User.objects.create_user(username="api", password="x")
+    client = APIClient()
+    client.force_authenticate(user=user)
+
+    resp = client.post(
+        "/api/log/cravings/",
+        {"timestamp": "2026-07-13T18:00", "substancia": "tabaco",
+         "intensidade_pico": 8, "gatilho": "tedio_vazio"},
+        format="json",
+    )
+
+    assert resp.status_code == 201, resp.content
+    assert "substituicao_usada" not in resp.json()

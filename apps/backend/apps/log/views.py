@@ -19,7 +19,7 @@ class DailyEntryViewSet(OwnedModelViewSet):
 class CravingEventViewSet(OwnedModelViewSet):
     queryset = CravingEvent.objects.all()
     serializer_class = CravingEventSerializer
-    filterset_fields = ["substancia", "publicable", "gatilho"]
+    filterset_fields = ["substancia", "publicable", "gatilho", "substituicao"]
     ordering_fields = ["timestamp", "intensidade_pico"]
 
 
