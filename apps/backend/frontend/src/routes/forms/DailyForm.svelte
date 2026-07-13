@@ -66,13 +66,13 @@
 <Scale label="Humor" bind:value={humor} />
 <Scale label="Energia" bind:value={energia} />
 <Scale label="Qualidade do sono" bind:value={sono_q} />
-<label class="lab">Horas de sono</label>
-<input class="nota" type="text" inputmode="decimal" placeholder="ex: 7.5" bind:value={sono_h} />
+<label class="lab" for="dl-sono-h">Horas de sono</label>
+<input id="dl-sono-h" class="nota" type="text" inputmode="decimal" placeholder="ex: 7.5" bind:value={sono_h} />
 <Scale label="Craving pico" bind:value={craving_pico} />
-<label class="lab">Coisa boa (opcional)</label>
-<input class="nota" placeholder="algo positivo do dia" bind:value={coisa_boa} />
-<label class="lab">Coisa difícil (opcional)</label>
-<input class="nota" placeholder="algo desafiador" bind:value={coisa_dificil} />
+<label class="lab" for="dl-coisa-boa">Coisa boa (opcional)</label>
+<input id="dl-coisa-boa" class="nota" placeholder="algo positivo do dia" bind:value={coisa_boa} />
+<label class="lab" for="dl-coisa-dificil">Coisa difícil (opcional)</label>
+<input id="dl-coisa-dificil" class="nota" placeholder="algo desafiador" bind:value={coisa_dificil} />
 {#if erro}<p class="erro">{erro}</p>{/if}
 <button class="save" disabled={salvando} onclick={() => (editando ? (confirmar = true) : salvar())}>
   {salvando ? "Salvando…" : editando ? "Salvar alterações" : "Salvar daily"}
@@ -89,10 +89,22 @@
 {/if}
 
 <style>
-  .lab { display: block; font-size: 11px; text-transform: uppercase; opacity: .6; margin: 12px 0 6px; }
-  .nota { width: 100%; margin-top: 4px; padding: 10px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 16px; box-sizing: border-box; }
+  .lab { display: block; font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin: var(--s-3) 0 var(--s-2); }
+  .nota {
+    width: 100%; margin-top: var(--s-1); padding: var(--s-3); border-radius: var(--r-sm);
+    border: 1px solid var(--border); background: var(--input-bg); color: var(--text);
+    font-size: 16px; box-sizing: border-box;
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+  .nota:hover:not(:disabled), .nota:focus { border-color: var(--accent); }
   .nota:disabled { opacity: .6; }
-  .save { width: 100%; margin-top: 16px; padding: 13px; background: var(--accent); color: var(--accent-ink); border: none; border-radius: var(--r-md); font-weight: 700; font-size: 16px; }
-  .save:disabled { opacity: .6; }
+  .save {
+    width: 100%; margin-top: var(--s-4); padding: var(--s-3); background: var(--accent);
+    color: var(--accent-ink); border: none; border-radius: var(--r-md); font-weight: 700;
+    font-size: 16px; cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .save:active { transform: scale(0.97); }
+  .save:disabled { opacity: .6; cursor: default; }
   .erro { color: var(--danger); white-space: pre-line; }
 </style>

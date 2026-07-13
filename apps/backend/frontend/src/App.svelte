@@ -7,6 +7,7 @@
   import Progresso from "./routes/Progresso.svelte";
   import Registros from "./routes/Registros.svelte";
   import BottomNav from "./lib/BottomNav.svelte";
+  import TopBar from "./lib/TopBar.svelte";
   import CaptureSheet from "./lib/CaptureSheet.svelte";
   import Toast from "./lib/Toast.svelte";
   import { captura, fecharCaptura } from "./lib/capture.svelte";
@@ -24,6 +25,7 @@
 {#if !auth.token}
   <Login />
 {:else}
+  <TopBar />
   <main>
     <Tela />
   </main>
@@ -35,6 +37,6 @@
 <Toast />
 
 <style>
-  main { padding: 16px 16px 90px; max-width: 480px; margin: 0 auto; }
+  main { padding: var(--s-4) var(--s-4) 96px; max-width: 480px; margin: 0 auto; }
   /* Cor/fonte do body vêm de tokens.css — não sobrescrever aqui. */
 </style>

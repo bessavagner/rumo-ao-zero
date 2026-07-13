@@ -59,20 +59,20 @@
 </script>
 
 <h2>{editando ? "Editar slip" : "Slip"}</h2>
-<label class="lab">Substância</label>
-<select class="sel" bind:value={substancia}>
+<label class="lab" for="sl-substancia">Substância</label>
+<select id="sl-substancia" class="sel" bind:value={substancia}>
   <option value="alcool">Álcool</option>
   <option value="tabaco">Tabaco</option>
 </select>
-<label class="lab">Quantidade (opcional)</label>
-<input class="nota" placeholder="ex: 2 cervejas" bind:value={quantidade} />
+<label class="lab" for="sl-quantidade">Quantidade (opcional)</label>
+<input id="sl-quantidade" class="nota" placeholder="ex: 2 cervejas" bind:value={quantidade} />
 <GatilhoPicker bind:gatilho bind:adicionais idSelect="sl-gatilho" rotuloPrincipal="Gatilho *" />
 
 <label class="lab" for="sl-detalhes">Detalhes (opcional)</label>
 <input id="sl-detalhes" class="nota" placeholder="o que aconteceu, nas suas palavras" bind:value={detalhes} />
 
-<label class="lab">Contexto (opcional)</label>
-<textarea class="nota" placeholder="onde estava, com quem..." bind:value={contexto}></textarea>
+<label class="lab" for="sl-contexto">Contexto (opcional)</label>
+<textarea id="sl-contexto" class="nota" placeholder="onde estava, com quem..." bind:value={contexto}></textarea>
 <div class="checks">
   <label class="check-lab">
     <input type="checkbox" bind:checked={reset_streak_alcool} />
@@ -99,13 +99,26 @@
 {/if}
 
 <style>
-  .lab { display: block; font-size: 11px; text-transform: uppercase; opacity: .6; margin: 12px 0 6px; }
-  .nota { width: 100%; margin-top: 4px; padding: 10px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 16px; box-sizing: border-box; }
-  .sel { width: 100%; padding: 10px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 16px; }
+  .lab { display: block; font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin: var(--s-3) 0 var(--s-2); }
+  .nota, .sel {
+    width: 100%; margin-top: var(--s-1); padding: var(--s-3); border-radius: var(--r-sm);
+    border: 1px solid var(--border); background: var(--input-bg); color: var(--text);
+    font-size: 16px; box-sizing: border-box;
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+  .sel { margin-top: 0; }
+  .nota:hover, .nota:focus, .sel:hover, .sel:focus { border-color: var(--accent); }
   textarea.nota { resize: vertical; min-height: 72px; }
-  .checks { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
-  .check-lab { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text); cursor: pointer; }
-  .save { width: 100%; margin-top: 16px; padding: 13px; background: var(--accent); color: var(--accent-ink); border: none; border-radius: var(--r-md); font-weight: 700; font-size: 16px; }
-  .save:disabled { opacity: .6; }
+  .checks { margin-top: var(--s-4); display: flex; flex-direction: column; gap: var(--s-2); }
+  .check-lab { display: flex; align-items: center; gap: var(--s-2); font-size: 14px; color: var(--text); cursor: pointer; }
+  .check-lab input { accent-color: var(--accent); }
+  .save {
+    width: 100%; margin-top: var(--s-4); padding: var(--s-3); background: var(--accent);
+    color: var(--accent-ink); border: none; border-radius: var(--r-md); font-weight: 700;
+    font-size: 16px; cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .save:active { transform: scale(0.97); }
+  .save:disabled { opacity: .6; cursor: default; }
   .erro { color: var(--danger); white-space: pre-line; }
 </style>

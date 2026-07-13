@@ -33,7 +33,8 @@
 </script>
 
 <div class="humor-curve" class:mini={mini}>
-  {#if !mini}<h3 class="titulo">Humor ao longo do tempo</h3>{/if}
+  <!-- Um card sem rótulo é um card mudo: no painel a curva também se apresenta. -->
+  <h3 class="titulo">{mini ? "Humor (7 dias)" : "Humor ao longo do tempo"}</h3>
   {#if pontos.length === 0}
     <p class="vazio">sem dados ainda</p>
   {:else}
@@ -57,16 +58,25 @@
 </div>
 
 <style>
-  .humor-curve { background: var(--surface); border-radius: var(--r-lg); padding: 14px 16px; margin-bottom: 12px; }
-  .humor-curve.mini { padding: 10px 12px; }
-  .titulo { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); margin: 0 0 10px 0; }
-  .vazio { font-size: 13px; color: var(--text-muted); margin: 0; padding-bottom: 4px; }
+  .humor-curve {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-lg); padding: var(--s-4) var(--s-5);
+    margin-bottom: var(--s-3);
+    box-shadow: var(--shadow-sm);
+  }
+  .titulo {
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--text-muted); margin: 0 0 var(--s-3) 0;
+  }
+  .vazio { font-size: 13px; color: var(--text-muted); margin: 0; padding-bottom: var(--s-1); }
   .chart-svg { width: 100%; height: auto; display: block; }
   .axis-label { font-size: 9px; fill: var(--text-muted); font-family: inherit; }
   .axis-label.zero { fill: var(--accent); font-weight: 600; }
-  .grid { stroke: var(--border-2); stroke-width: 1; }
+  .grid { stroke: var(--border); stroke-width: 1; }
   /* A "linha do zero": eixo 0 destacado em sage — a meta, a assinatura do app. */
   .grid.zero { stroke: var(--accent-dim); stroke-width: 1.5; }
   .linha { stroke: var(--accent); }
-  .ponto { fill: var(--accent); stroke: var(--bg); stroke-width: 1.5; }
+  /* O contorno do ponto é a cor do card (não a do fundo da página): o card
+     agora é mais claro que o papel no tema claro. */
+  .ponto { fill: var(--accent); stroke: var(--surface); stroke-width: 1.5; }
 </style>

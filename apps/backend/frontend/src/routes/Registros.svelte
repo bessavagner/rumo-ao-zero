@@ -195,25 +195,54 @@
 {/if}
 
 <style>
-  .tabs { display: flex; gap: 6px; margin-bottom: 16px; }
-  .tabs button { flex: 1; background: var(--surface); border: 1.5px solid var(--border-2); color: var(--indigo-soft); border-radius: var(--r-sm); padding: 8px 0; font-size: 13px; font-weight: 600; }
-  .tabs button.active { background: var(--indigo); border-color: var(--indigo); color: #fff; }
-  .msg { opacity: .7; font-size: 14px; }
+  /* Abas de tipo — mesmo segmented control das abas do CaptureSheet: trilho
+     tingido (surface-3) com a pílula ativa em accent. */
+  .tabs { display: flex; gap: var(--s-1); margin-bottom: var(--s-4); background: var(--surface-3); padding: var(--s-1); border-radius: var(--r-pill); }
+  .tabs button {
+    flex: 1; background: none; border: none; color: var(--text-muted);
+    border-radius: var(--r-pill); padding: var(--s-2) 0; font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out),
+                transform var(--dur-fast) var(--ease-out);
+  }
+  .tabs button:hover { color: var(--text); }
+  .tabs button:active { transform: scale(0.97); }
+  .tabs button.active { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-sm); }
+  .msg { color: var(--text-muted); font-size: 14px; }
   .erro { color: var(--danger); font-size: 14px; }
-  .retry { margin-top: 10px; background: var(--surface-3); color: var(--text); border: none; border-radius: var(--r-sm); padding: 8px 14px; font-size: 14px; }
-  .lista { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
-  .item { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--surface); border-radius: var(--r-lg); padding: 12px 14px; }
+  .retry {
+    margin-top: 10px; background: var(--surface-3); color: var(--text); border: none;
+    border-radius: var(--r-md); padding: var(--s-2) 14px; font-size: 14px; cursor: pointer;
+    transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+  .retry:hover { background: var(--surface-2); }
+  .retry:active { transform: scale(0.97); }
+  .lista { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+  /* Card plano sobre --surface: em modo claro fica quase branco sobre o papel
+     creme, então precisa de borda + sombra para se ler como card. */
+  .item {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
+    padding: var(--s-3) 14px; box-shadow: var(--shadow-sm);
+  }
   .info { min-width: 0; }
   .titulo { font-size: 14px; font-weight: 700; }
-  .sub { font-size: 12px; opacity: .65; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .acoes { display: flex; gap: 6px; flex-shrink: 0; }
-  .acoes button { background: var(--surface-3); border: none; border-radius: var(--r-sm); padding: 8px; display: grid; place-items: center; color: var(--text-muted); cursor: pointer; }
+  .acoes button {
+    background: var(--surface-3); border: none; border-radius: var(--r-md); padding: var(--s-2);
+    display: grid; place-items: center; color: var(--text-muted); cursor: pointer;
+    transition: background var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+  .acoes button:hover { background: var(--surface-2); }
+  .acoes button:active { transform: scale(0.97); }
   .acoes button svg { width: 17px; height: 17px; display: block; }
   .acoes .del { color: var(--danger); }
 
-  .dim { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 40; }
+  .dim { position: fixed; inset: 0; background: var(--scrim); z-index: 40; }
   .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; background: var(--surface-2);
-    border-radius: var(--r-xl) var(--r-xl) 0 0; padding: 14px 16px calc(24px + env(safe-area-inset-bottom));
-    max-width: 480px; margin: 0 auto; max-height: 88vh; overflow-y: auto; }
-  .grab { width: 36px; height: 4px; background: var(--border-2); border-radius: 3px; margin: 0 auto 16px; }
+    border-radius: var(--r-xl) var(--r-xl) 0 0; padding: 14px var(--s-4) calc(var(--s-6) + env(safe-area-inset-bottom));
+    max-width: 480px; margin: 0 auto; max-height: 88vh; overflow-y: auto; box-shadow: var(--shadow-md); }
+  .grab { width: 36px; height: 4px; background: var(--border-2); border-radius: 3px; margin: 0 auto var(--s-4); }
 </style>

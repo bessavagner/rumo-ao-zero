@@ -70,10 +70,20 @@
 </div>
 
 <style>
-  .lab { display: block; font-size: 11px; text-transform: uppercase; opacity: .6; margin: 12px 0 6px; }
-  .sel { width: 100%; padding: 10px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 16px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { display: inline-flex; align-items: center; gap: 5px; background: var(--surface-3); border: 1px solid var(--border-2); color: var(--text); border-radius: 999px; padding: 6px 10px; font-size: 12px; }
+  .lab { display: block; font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin: var(--s-3) 0 var(--s-2); }
+  .sel {
+    width: 100%; padding: var(--s-3); border-radius: var(--r-sm); border: 1px solid var(--border);
+    background: var(--input-bg); color: var(--text); font-size: 16px;
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+  .sel:hover, .sel:focus { border-color: var(--accent); }
+  .chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px; background: var(--surface-3);
+    border: 1px solid var(--border-2); color: var(--text); border-radius: var(--r-pill);
+    padding: var(--s-2) var(--s-3); font-size: 12px; cursor: pointer;
+    transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  }
   .chip.on { border-color: var(--accent); color: var(--accent); }
   .chip input { accent-color: var(--accent); }
 </style>

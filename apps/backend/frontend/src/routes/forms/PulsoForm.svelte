@@ -6,12 +6,17 @@
   import Scale from "../../lib/Scale.svelte";
   import type { PulsoInput, Pulso } from "../../lib/types";
 
-  let { onDone, registro }: { onDone: () => void; registro?: Pulso } = $props();
+  let { onDone, registro, humorInicial }: {
+    onDone: () => void;
+    registro?: Pulso;
+    /** Vem das carinhas do Início — abre o form com o humor já marcado. */
+    humorInicial?: number;
+  } = $props();
 
   const editando = !!registro;
   // Confirmação ao editar registro histórico (criar não pede).
   let confirmar = $state(false);
-  let humor = $state(registro?.humor ?? 5);
+  let humor = $state(registro?.humor ?? humorInicial ?? 5);
   let energia = $state(registro?.energia ?? 5);
   let craving = $state(registro?.craving ?? 0);
   let nota = $state(registro?.nota ?? "");

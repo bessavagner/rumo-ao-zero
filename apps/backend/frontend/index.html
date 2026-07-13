@@ -5,6 +5,17 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rumo ao Zero</title>
+    <script>
+      // Fixa a banda de cor escolhida ANTES da primeira pintura — sem isto, um
+      // tema escuro salvo pisca branco no carregamento. Sem escolha salva, o
+      // color-scheme dos tokens deixa o sistema decidir.
+      (function () {
+        try {
+          var t = localStorage.getItem("rz-tema");
+          if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+        } catch (e) { /* localStorage bloqueado: segue no padrão do sistema */ }
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>

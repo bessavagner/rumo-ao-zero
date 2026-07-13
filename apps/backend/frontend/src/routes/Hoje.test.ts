@@ -32,12 +32,23 @@ import { captura, fecharCaptura } from "../lib/capture.svelte";
 describe("Início (Hoje)", () => {
   beforeEach(() => fecharCaptura());
 
-  it("chip '+ Craving' abre a captura na aba craving", async () => {
+  it("chip 'Craving' abre a captura na aba craving", async () => {
     render(Hoje);
-    const chip = await screen.findByRole("button", { name: "+ Craving" });
+    const chip = await screen.findByRole("button", { name: "Craving" });
     await fireEvent.click(chip);
     expect(captura.aberta).toBe(true);
     expect(captura.aba).toBe("craving");
+  });
+
+  // As carinhas são um atalho, não um registro: abrem o Pulso com o humor já
+  // marcado e deixam o form salvar (energia, craving e nota entram lá).
+  it("carinha abre o Pulso com o humor pré-marcado, sem salvar sozinha", async () => {
+    render(Hoje);
+    const carinha = await screen.findByRole("button", { name: /humor 9 de 10/ });
+    await fireEvent.click(carinha);
+    expect(captura.aberta).toBe(true);
+    expect(captura.aba).toBe("pulso");
+    expect(captura.humorInicial).toBe(9);
   });
 
   it("pede a janela de 7 dias e anuncia a janela que pediu", async () => {

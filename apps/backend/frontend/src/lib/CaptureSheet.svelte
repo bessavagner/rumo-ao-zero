@@ -26,7 +26,9 @@
     {/each}
   </div>
   {#if aba === "pulso"}
-    <PulsoForm onDone={onClose} />
+    <!-- humorInicial vem das carinhas do Início: o form abre com o humor já
+         marcado, mas quem salva continua sendo o form. -->
+    <PulsoForm onDone={onClose} humorInicial={captura.humorInicial} />
   {:else if aba === "craving"}
     <CravingForm onDone={onClose} />
   {:else if aba === "slip"}
@@ -37,13 +39,21 @@
 </div>
 
 <style>
-  .dim { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 30; }
-  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 31; background: var(--surface-2);
-    border-radius: var(--r-xl) var(--r-xl) 0 0; padding: 14px 16px calc(24px + env(safe-area-inset-bottom));
-    max-width: 480px; margin: 0 auto; max-height: 88vh; overflow-y: auto; }
-  .grab { width: 36px; height: 4px; background: var(--border-2); border-radius: 3px; margin: 0 auto 14px; }
-  .abas { display: flex; gap: 6px; margin-bottom: 14px; }
-  .abas button { flex: 1; background: var(--surface); border: 1.5px solid var(--border-2);
-    color: var(--text-muted); border-radius: var(--r-sm); padding: 8px 0; font-size: 13px; font-weight: 600; }
-  .abas button.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .dim { position: fixed; inset: 0; background: var(--scrim); z-index: 30; }
+  .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 31; background: var(--bg);
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    padding: var(--s-3) var(--s-4) calc(var(--s-6) + env(safe-area-inset-bottom));
+    max-width: 480px; margin: 0 auto; max-height: 88vh; overflow-y: auto;
+    box-shadow: var(--shadow-md);
+    animation: sobe var(--dur-mid) var(--ease-out); }
+  @keyframes sobe { from { transform: translateY(12px); opacity: 0; } }
+  .grab { width: 36px; height: 4px; background: var(--border-2); border-radius: var(--r-pill); margin: 0 auto var(--s-4); }
+  .abas { display: flex; gap: var(--s-1); margin-bottom: var(--s-4);
+    background: var(--surface-3); padding: var(--s-1); border-radius: var(--r-pill); }
+  .abas button { flex: 1; background: none; border: none;
+    color: var(--text-muted); border-radius: var(--r-pill); padding: var(--s-2) 0;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+  .abas button:hover { color: var(--text); }
+  .abas button.active { background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow-sm); }
 </style>

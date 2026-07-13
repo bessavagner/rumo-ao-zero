@@ -40,15 +40,22 @@
 
 <style>
   .tabbar { position: fixed; bottom: 0; left: 0; right: 0; display: flex; align-items: center;
-    justify-content: space-around; gap: 4px; background: var(--surface-nav); border-top: 1px solid var(--border);
-    padding: 8px 12px calc(10px + env(safe-area-inset-bottom)); max-width: 480px; margin: 0 auto; }
+    justify-content: space-around; gap: var(--s-1); background: var(--surface-nav);
+    border-top: 1px solid var(--border);
+    padding: var(--s-2) var(--s-3) calc(var(--s-3) + env(safe-area-inset-bottom));
+    max-width: 480px; margin: 0 auto; }
   .it { background: none; border: none; color: var(--text-muted); display: flex; flex-direction: column;
-    align-items: center; gap: 3px; font-size: 11px; font-weight: 500; padding: 4px 8px; cursor: pointer;
-    transition: color 0.15s; }
+    align-items: center; gap: 3px; font-size: 11px; font-weight: 600; padding: var(--s-1) var(--s-2);
+    cursor: pointer; border-radius: var(--r-sm);
+    transition: color var(--dur-fast) var(--ease-out); }
   .it .ic { display: grid; place-items: center; }
   .it .ic svg { width: 22px; height: 22px; }
+  .it:hover { color: var(--text); }
   .it.active { color: var(--accent); }
-  .plus { width: 44px; height: 44px; border-radius: var(--r-md); background: var(--accent);
-    color: var(--accent-ink); border: none; flex-shrink: 0; display: grid; place-items: center; cursor: pointer; }
+  .plus { width: 46px; height: 46px; border-radius: var(--r-md); background: var(--accent);
+    color: var(--accent-ink); border: none; flex-shrink: 0; display: grid; place-items: center;
+    cursor: pointer; box-shadow: var(--shadow-md);
+    transition: transform var(--dur-fast) var(--ease-out); }
   .plus svg { width: 24px; height: 24px; }
+  .plus:active { transform: scale(0.94); }
 </style>

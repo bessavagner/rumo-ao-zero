@@ -22,12 +22,12 @@
     color: var(--accent-ink);
     font-size: 15px;
     font-weight: 700;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+    box-shadow: var(--shadow-md);
     white-space: pre-line;
     text-align: center;
   }
   .toast.erro {
     background: var(--danger);
-    color: #1a0606;
+    color: var(--danger-ink);
   }
 </style>

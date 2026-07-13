@@ -70,35 +70,48 @@
 
 <style>
   .progresso {
-    padding: 16px 16px 90px;
+    padding: var(--s-4) var(--s-4) 90px;
     max-width: 480px;
     margin: 0 auto;
   }
+  /* Seletor de período — mesmo padrão de segmented control das abas do CaptureSheet:
+     trilho tingido (surface-3) com a pílula ativa em accent. */
   .periodo-sel {
     display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
+    gap: var(--s-1);
+    margin-bottom: var(--s-4);
+    background: var(--surface-3);
+    padding: var(--s-1);
+    border-radius: var(--r-pill);
   }
   .p-btn {
     flex: 1;
-    background: var(--surface);
-    border: 1.5px solid var(--border-2);
-    color: var(--indigo-soft);
-    border-radius: var(--r-sm);
-    padding: 8px 0;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    border-radius: var(--r-pill);
+    padding: var(--s-2) 0;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    transition: background var(--dur-fast) var(--ease-out),
+                color var(--dur-fast) var(--ease-out),
+                transform var(--dur-fast) var(--ease-out);
+  }
+  .p-btn:hover {
+    color: var(--text);
+  }
+  .p-btn:active {
+    transform: scale(0.97);
   }
   .p-btn.active {
-    background: var(--indigo);
-    border-color: var(--indigo);
-    color: #fff;
+    background: var(--accent);
+    color: var(--accent-ink);
+    box-shadow: var(--shadow-sm);
   }
   .erro {
     color: var(--danger);
     font-size: 14px;
-    margin: 0 0 12px 0;
+    margin: 0 0 var(--s-3) 0;
   }
 </style>

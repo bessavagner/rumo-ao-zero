@@ -215,17 +215,80 @@
 {/if}
 
 <style>
-  .lab { display: block; font-size: 11px; text-transform: uppercase; opacity: .6; margin: 12px 0 6px; }
-  .sub { font-size: 13px; opacity: .7; margin: 0 0 4px; }
-  input[type=range] { width: 100%; }
-  .nota { width: 100%; margin-top: 4px; padding: 10px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 16px; box-sizing: border-box; }
-  .sel { width: 100%; padding: 10px; border-radius: var(--r-sm); border: 1px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 16px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { display: inline-flex; align-items: center; gap: 5px; background: var(--surface-3); border: 1px solid var(--border-2); color: var(--text); border-radius: 999px; padding: 6px 10px; font-size: 12px; }
+  .lab { display: block; font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin: var(--s-3) 0 var(--s-2); }
+  .sub { font-size: 13px; color: var(--text-muted); margin: 0 0 var(--s-1); }
+
+  /* Range nativo, mesmo desenho do Scale.svelte: trilho neutro, thumb no acento
+     com anel na cor da superfície — senão o thumb "flutua" sem contraste no papel claro. */
+  input[type=range] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: var(--r-pill);
+    background: var(--surface-3);
+  }
+  input[type=range]::-moz-range-track {
+    height: 4px;
+    border-radius: var(--r-pill);
+    background: var(--surface-3);
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    margin-top: -7px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--surface);
+    cursor: pointer;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px var(--surface);
+    cursor: pointer;
+  }
+
+  .nota, .sel {
+    width: 100%; margin-top: var(--s-1); padding: var(--s-3); border-radius: var(--r-sm);
+    border: 1px solid var(--border); background: var(--input-bg); color: var(--text);
+    font-size: 16px; box-sizing: border-box;
+    transition: border-color var(--dur-fast) var(--ease-out);
+  }
+  .sel { margin-top: 0; }
+  .nota:hover, .nota:focus, .sel:hover, .sel:focus { border-color: var(--accent); }
+  .chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px; background: var(--surface-3);
+    border: 1px solid var(--border-2); color: var(--text); border-radius: var(--r-pill);
+    padding: var(--s-2) var(--s-3); font-size: 12px; cursor: pointer;
+    transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+  }
   .chip.on { border-color: var(--accent); color: var(--accent); }
   .chip input { accent-color: var(--accent); }
-  .save { width: 100%; margin-top: 16px; padding: 13px; background: var(--accent); color: var(--accent-ink); border: none; border-radius: var(--r-md); font-weight: 700; font-size: 16px; }
-  .save:disabled { opacity: .6; }
-  .depois { width: 100%; margin-top: 8px; padding: 11px; background: none; border: none; color: var(--text-muted); font-size: 14px; }
+  .save {
+    width: 100%; margin-top: var(--s-4); padding: var(--s-3); background: var(--accent);
+    color: var(--accent-ink); border: none; border-radius: var(--r-md); font-weight: 700;
+    font-size: 16px; cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .save:active { transform: scale(0.97); }
+  .save:disabled { opacity: .6; cursor: default; }
+  .depois {
+    width: 100%; margin-top: var(--s-2); padding: var(--s-3); background: none; border: none;
+    color: var(--text-muted); font-size: 14px; cursor: pointer;
+    transition: color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  }
+  .depois:hover { color: var(--text); }
+  .depois:active { transform: scale(0.97); }
   .erro { color: var(--danger); white-space: pre-line; }
 </style>
